@@ -1,1 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Smart Food Packaging | SmartPack AI
+    </title>
+
+
+    <style>
+
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+        }
+
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #eef6ff,
+                    #f8fbff
+                );
+
+            color: #1e293b;
+
+            line-height: 1.6;
+
+        }
+
+
+        /* =================================================
+           NAVBAR
+        ================================================= */
+
+        header {
+
+            background: #0b1f3a;
+
+            color: white;
+
+            padding: 18px 7%;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            flex-wrap: wrap;
+
+            gap: 15px;
+
+            box-shadow:
+                0 3px 12px
+                rgba(0, 0, 0, 0.15);
+
+        }
+
+
+        .logo {
+
+            font-size: 23px;
+
+            font-weight: bold;
+
+            white-space: nowrap;
+
+        }
+
+
+        nav {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 16px;
+
+        }
+
+
+        nav a {
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 14px;
+
+            transition: 0.2s;
+
+        }
+
+
+        nav a:hover {
+
+            color: #38bdf8;
+
+        }
+
+
+        /* =================================================
+           HERO
+        ================================================= */
+
+        .hero {
+
+            min-height: 520px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            text-align: center;
+
+            padding: 70px 8%;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #e0f2fe,
+                    #f8fafc
+                );
+
+        }
+
+
+        .hero-content {
+
+            max-width: 850px;
+
+        }
+
+
+        .hero h1 {
+
+            font-size: 48px;
+
+            color: #0b1f3a;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .hero h1 span {
+
+            color: #0284c7;
+
+        }
+
+
+        .hero p {
+
+            font-size: 18px;
+
+            color: #475569;
+
+            max-width: 720px;
+
+            margin: auto;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .hero-button {
+
+            display: inline-block;
+
+            background: #0284c7;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 14px 28px;
+
+            border-radius: 8px;
+
+            font-weight: bold;
+
+            transition: 0.2s;
+
+        }
+
+
+        .hero-button:hover {
+
+            background: #0369a1;
+
+            transform: translateY(-2px);
+
+        }
+
+
+        /* =================================================
+           SECTIONS
+        ================================================= */
+
+        .section {
+
+            width: 90%;
+
+            max-width: 1150px;
+
+            margin: 60px auto;
+
+        }
+
+
+        .section-title {
+
+            text-align: center;
+
+            margin-bottom: 35px;
+
+        }
+
+
+        .section-title h2 {
+
+            color: #0b1f3a;
+
+            font-size: 30px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .section-title p {
+
+            color: #64748b;
+
+        }
+
+
+        /* =================================================
+           MODULES
+        ================================================= */
+
+        .modules {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(250px, 1fr)
+                );
+
+            gap: 20px;
+
+        }
+
+
+        .module-card {
+
+            background: white;
+
+            border-radius: 14px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 7px 22px
+                rgba(0, 0, 0, 0.07);
+
+            border:
+                1px solid #e2e8f0;
+
+            transition: 0.25s;
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+        .module-card:hover {
+
+            transform: translateY(-5px);
+
+            box-shadow:
+                0 12px 28px
+                rgba(0, 0, 0, 0.12);
+
+        }
+
+
+        .module-icon {
+
+            font-size: 35px;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .module-card h3 {
+
+            color: #0b1f3a;
+
+            margin-bottom: 10px;
+
+        }
+
+
+        .module-card p {
+
+            color: #64748b;
+
+            font-size: 14px;
+
+            margin-bottom: 18px;
+
+            flex-grow: 1;
+
+        }
+
+
+        .module-card a {
+
+            color: #0284c7;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            font-size: 14px;
+
+        }
+
+
+        .module-card a:hover {
+
+            color: #0369a1;
+
+        }
+
+
+        /* =================================================
+           HOW IT WORKS
+        ================================================= */
+
+        .steps {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(200px, 1fr)
+                );
+
+            gap: 20px;
+
+        }
+
+
+        .step {
+
+            background: white;
+
+            padding: 22px;
+
+            border-radius: 12px;
+
+            border:
+                1px solid #e2e8f0;
+
+            text-align: center;
+
+        }
+
+
+        .step-number {
+
+            width: 42px;
+
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            margin: 0 auto 12px;
+
+            border-radius: 50%;
+
+            background: #0284c7;
+
+            color: white;
+
+            font-weight: bold;
+
+            font-size: 18px;
+
+        }
+
+
+        .step h3 {
+
+            margin-bottom: 7px;
+
+            color: #0b1f3a;
+
+        }
+
+
+        .step p {
+
+            color: #64748b;
+
+            font-size: 14px;
+
+        }
+
+
+        /* =================================================
+           FOOTER
+        ================================================= */
+
+        footer {
+
+            background: #0b1f3a;
+
+            color: #cbd5e1;
+
+            text-align: center;
+
+            padding: 25px;
+
+            margin-top: 70px;
+
+            font-size: 13px;
+
+        }
+
+
+        /* =================================================
+           RESPONSIVE
+        ================================================= */
+
+        @media (max-width: 750px) {
+
+            header {
+
+                justify-content: center;
+
+                text-align: center;
+
+            }
+
+
+            nav {
+
+                justify-content: center;
+
+            }
+
+
+            .hero h1 {
+
+                font-size: 36px;
+
+            }
+
+
+            .hero p {
+
+                font-size: 16px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ======================================================
+     NAVIGATION
+======================================================= -->
+
+<header>
+
+    <div class="logo">
+        SmartPack AI
+    </div>
+
+
+    <nav>
+
+        <a href="/">
+            Home
+        </a>
+
+        <a href="/recommendation">
+            Recommendation
+        </a>
+
+        <a href="/manufacturer">
+            Manufacturer
+        </a>
+
+        <a href="/inspector">
+            Inspector
+        </a>
+
+        <a href="/logistics">
+            Logistics
+        </a>
+
+        <a href="/chatbot">
+            AI Assistant
+        </a>
+
+    </nav>
+
+</header>
+
+
+
+<!-- ======================================================
+     HERO
+======================================================= -->
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <h1>
+
+            Smart Food
+            <span>Packaging</span>
+
+        </h1>
+
+
+        <p>
+
+            An intelligent food packaging platform
+            combining packaging science, product
+            characteristics and SmartPack AI to support
+            better packaging decisions.
+
+        </p>
+
+
+        <a
+            href="/recommendation"
+            class="hero-button"
+        >
+
+            Start Packaging Recommendation
+
+        </a>
+
+    </div>
+
+</section>
+
+
+
+<!-- ======================================================
+     MODULES
+======================================================= -->
+
+<section class="section">
+
+
+    <div class="section-title">
+
+        <h2>
+            SmartPack Modules
+        </h2>
+
+
+        <p>
+
+            Explore the different components of the
+            intelligent food packaging system.
+
+        </p>
+
+    </div>
+
+
+
+    <div class="modules">
+
+
+        <!-- Recommendation -->
+
+        <div class="module-card">
+
+            <div class="module-icon">
+                📦
+            </div>
+
+
+            <h3>
+                Packaging Recommendation
+            </h3>
+
+
+            <p>
+
+                Analyze product characteristics and
+                packaging requirements to receive a
+                rule-based and AI-assisted recommendation.
+
+            </p>
+
+
+            <a href="/recommendation">
+
+                Open Recommendation →
+
+            </a>
+
+        </div>
+
+
+
+        <!-- Manufacturer -->
+
+        <div class="module-card">
+
+            <div class="module-icon">
+                🏭
+            </div>
+
+
+            <h3>
+                Manufacturer Portal
+            </h3>
+
+
+            <p>
+
+                Enter product and packaging information
+                and prepare product packaging data.
+
+            </p>
+
+
+            <a href="/manufacturer">
+
+                Open Manufacturer Portal →
+
+            </a>
+
+        </div>
+
+
+
+        <!-- Inspector -->
+
+        <div class="module-card">
+
+            <div class="module-icon">
+                🔍
+            </div>
+
+
+            <h3>
+                Smart Pack Inspector
+            </h3>
+
+
+            <p>
+
+                Analyze packaging or food images and
+                identify useful visual information.
+
+            </p>
+
+
+            <a href="/inspector">
+
+                Open Inspector →
+
+            </a>
+
+        </div>
+
+
+
+        <!-- Logistics -->
+
+        <div class="module-card">
+
+            <div class="module-icon">
+                🚚
+            </div>
+
+
+            <h3>
+                Smart Logistics
+            </h3>
+
+
+            <p>
+
+                Monitor important packaging and
+                cold-chain conditions during food
+                transportation.
+
+            </p>
+
+
+            <a href="/logistics">
+
+                Open Logistics →
+
+            </a>
+
+        </div>
+
+
+
+        <!-- AI -->
+
+        <div class="module-card">
+
+            <div class="module-icon">
+                🤖
+            </div>
+
+
+            <h3>
+                SmartPack AI Assistant
+            </h3>
+
+
+            <p>
+
+                Ask questions about packaging materials,
+                barriers, shelf life, sustainability and
+                food packaging concepts.
+
+            </p>
+
+
+            <a href="/chatbot">
+
+                Open SmartPack AI →
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- ======================================================
+     HOW IT WORKS
+======================================================= -->
+
+<section class="section">
+
+
+    <div class="section-title">
+
+        <h2>
+            How SmartPack Works
+        </h2>
+
+
+        <p>
+
+            A simple workflow from product information
+            to packaging decision support.
+
+        </p>
+
+    </div>
+
+
+
+    <div class="steps">
+
+
+        <div class="step">
+
+            <div class="step-number">
+                1
+            </div>
+
+
+            <h3>
+                Enter Product Data
+            </h3>
+
+
+            <p>
+
+                Provide product characteristics,
+                packaging details and required shelf life.
+
+            </p>
+
+        </div>
+
+
+
+        <div class="step">
+
+            <div class="step-number">
+                2
+            </div>
+
+
+            <h3>
+                Rule Analysis
+            </h3>
+
+
+            <p>
+
+                The baseline rule engine immediately
+                analyzes the product requirements.
+
+            </p>
+
+        </div>
+
+
+
+        <div class="step">
+
+            <div class="step-number">
+                3
+            </div>
+
+
+            <h3>
+                SmartPack AI
+            </h3>
+
+
+            <p>
+
+                SmartPack AI performs a deeper analysis
+                using the product information and baseline.
+
+            </p>
+
+        </div>
+
+
+
+        <div class="step">
+
+            <div class="step-number">
+                4
+            </div>
+
+
+            <h3>
+                Get Recommendation
+            </h3>
+
+
+            <p>
+
+                Receive a compact recommendation with
+                reasons, benefits, shelf-life assessment
+                and evidence.
+
+            </p>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- ======================================================
+     FOOTER
+======================================================= -->
+
+<footer>
+
+    <p>
+        Smart Food Packaging System
+    </p>
+
+
+    <p>
+        AI-assisted packaging decision support
+    </p>
+
+</footer>
+
+
+</body>
+
+</html>

@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartPack AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+        }
+
+        /* =========================
+           NAVBAR
+        ========================== */
+
+        nav {
+            background: #071a3d;
+            color: white;
+            padding: 15px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .logo span {
+            color: #4da3ff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .nav-links a:hover {
+            color: #62b0ff;
+        }
+
+        /* =========================
+           MAIN
+        ========================== */
+
+        .container {
+            width: min(1100px, 92%);
+            margin: 35px auto 60px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hero h1 {
+            font-size: 38px;
+            color: #071a3d;
+            margin-bottom: 10px;
+        }
+
+        .hero h1 span {
+            color: #1683ff;
+        }
+
+        .hero p {
+            color: #637089;
+            font-size: 16px;
+        }
+
+        /* =========================
+           FAQ SECTION
+        ========================== */
+
+        .section-title {
+            margin-bottom: 15px;
+            color: #071a3d;
+        }
+
+        .section-subtitle {
+            color: #68748a;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .faq-category {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e6ef;
+            overflow: hidden;
+        }
+
+        .faq-category-header {
+            width: 100%;
+            border: none;
+            background: white;
+            padding: 18px 20px;
+            text-align: left;
+            font-size: 16px;
+            font-weight: bold;
+            color: #172033;
+            cursor: pointer;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-category-header:hover {
+            background: #f7faff;
+        }
+
+        .arrow {
+            font-size: 18px;
+            transition: transform 0.25s ease;
+        }
+
+        .faq-category.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        .faq-questions {
+            display: none;
+            border-top: 1px solid #e5eaf1;
+            background: #fbfcff;
+        }
+
+        .faq-category.open .faq-questions {
+            display: block;
+        }
+
+        .faq-question {
+            border-bottom: 1px solid #e9edf3;
+        }
+
+        .faq-question:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question-button {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            color: #25324a;
+            font-size: 14px;
+        }
+
+        .faq-question-button:hover {
+            background: #f1f6fd;
+        }
+
+        .question-arrow {
+            color: #6d7b91;
+            margin-left: 10px;
+        }
+
+        .faq-answer {
+            display: none;
+            padding: 0 20px 16px 20px;
+            color: #526078;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .faq-question.active .faq-answer {
+            display: block;
+        }
+
+        /* =========================
+           CHAT BOX
+        ========================== */
+
+        .chat-section {
+            margin-top: 45px;
+        }
+
+        .chat-box {
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #dfe6f0;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(12, 37, 75, 0.08);
+        }
+
+        .chat-header {
+            background: #071a3d;
+            color: white;
+            padding: 20px 22px;
+        }
+
+        .chat-header h2 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 13px;
+            color: #c8d7ee;
+        }
+
+        .chat-messages {
+            height: 420px;
+            overflow-y: auto;
+            padding: 22px;
+            background: #f8faff;
+        }
+
+        .message {
+            max-width: 78%;
+            padding: 12px 15px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            line-height: 1.55;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .ai-message {
+            background: white;
+            border: 1px solid #e0e6ef;
+            color: #26334a;
+            margin-right: auto;
+        }
+
+        .user-message {
+            background: #1683ff;
+            color: white;
+            margin-left: auto;
+        }
+
+        .typing {
+            display: none;
+            color: #718098;
+            font-size: 13px;
+            padding: 0 22px 12px;
+            background: #f8faff;
+        }
+
+        /* =========================
+           INPUT
+        ========================== */
+
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid #e1e7ef;
+            background: white;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        #chatInput {
+            flex: 1;
+            border: 1px solid #cfd8e6;
+            border-radius: 12px;
+            padding: 13px 15px;
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            min-height: 48px;
+        }
+
+        #chatInput:focus {
+            border-color: #1683ff;
+            box-shadow: 0 0 0 3px rgba(22, 131, 255, 0.1);
+        }
+
+        #sendButton {
+            border: none;
+            border-radius: 12px;
+            padding: 0 20px;
+            background: #1683ff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 90px;
+        }
+
+        #sendButton:hover {
+            background: #096fdc;
+        }
+
+        #sendButton:disabled {
+            background: #9eb4cf;
+            cursor: not-allowed;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #7b879b;
+            margin-top: 8px;
+        }
+
+        /* =========================
+           SUGGESTIONS
+        ========================== */
+
+        .suggestions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .suggestion {
+            border: 1px solid #d5dfec;
+            background: white;
+            border-radius: 20px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #34445e;
+        }
+
+        .suggestion:hover {
+            background: #edf5ff;
+            border-color: #9dc8f7;
+        }
+
+        /* =========================
+           FOOTER
+        ========================== */
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #78859a;
+            font-size: 13px;
+        }
+
+        /* =========================
+           MOBILE
+        ========================== */
+
+        @media (max-width: 700px) {
+
+            nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-links {
+                justify-content: flex-start;
+                gap: 12px;
+            }
+
+            .hero h1 {
+                font-size: 30px;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+
+            #sendButton {
+                height: 46px;
+            }
+
+            .chat-messages {
+                height: 380px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =========================
+     NAVBAR
+========================== -->
+
+<nav>
+
+    <div class="logo">
+        SmartPack <span>AI</span>
+    </div>
+
+    <div class="nav-links">
+
+        <a href="/">Home</a>
+        <a href="/recommendation">Recommendation</a>
+        <a href="/manufacturer">Manufacturer</a>
+        <a href="/inspector">Inspector</a>
+        <a href="/logistics">Logistics</a>
+        <a href="/chatbot">AI Assistant</a>
+
+    </div>
+
+</nav>
+
+
+<!-- =========================
+     MAIN
+========================== -->
+
+<div class="container">
+
+    <div class="hero">
+
+        <h1>
+            Ask <span>SmartPack AI</span>
+        </h1>
+
+        <p>
+            Simple answers about food packaging, storage,
+            logistics and packaging technology.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         FAQ
+    ========================== -->
+
+    <h2 class="section-title">
+        Frequently Asked Questions
+    </h2>
+
+    <p class="section-subtitle">
+        Choose a topic to see common questions.
+    </p>
+
+
+    <div id="faqContainer"></div>
+
+
+    <!-- =========================
+         CHAT
+    ========================== -->
+
+    <div class="chat-section">
+
+        <h2 class="section-title">
+            Ask Your Own Question
+        </h2>
+
+        <p class="section-subtitle">
+            Can't find your question above? Ask SmartPack AI directly.
+        </p>
+
+
+        <div class="chat-box">
+
+            <div class="chat-header">
+
+                <h2>SmartPack AI</h2>
+
+                <p>
+                    Ask anything related to food packaging and the SmartPack system.
+                </p>
+
+            </div>
+
+
+            <div
+                id="chatMessages"
+                class="chat-messages"
+            >
+
+                <div class="message ai-message">
+                    Hi! I'm SmartPack AI. Ask me about food packaging, materials, shelf life, storage, logistics or sustainable packaging.
+                </div>
+
+            </div>
+
+
+            <div
+                id="typing"
+                class="typing"
+            >
+                SmartPack AI is thinking...
+            </div>
+
+
+            <div class="chat-input-area">
+
+                <div class="input-row">
+
+                    <textarea
+                        id="chatInput"
+                        placeholder="Ask your question..."
+                        rows="1"
+                    ></textarea>
+
+                    <button
+                        id="sendButton"
+                        onclick="sendMessage()"
+                    >
+                        Send
+                    </button>
+
+                </div>
+
+
+                <div class="suggestions">
+
+                    <button
+                        class="suggestion"
+                        onclick="useSuggestion('What packaging should I use for paneer?')"
+                    >
+                        Paneer packaging
+                    </button>
+
+                    <button
+                        class="suggestion"
+                        onclick="useSuggestion('My namkeen becomes soft after a few days. Why?')"
+                    >
+                        Namkeen becomes soft
+                    </button>
+
+                    <button
+                        class="suggestion"
+                        onclick="useSuggestion('Can I replace plastic with biodegradable packaging?')"
+                    >
+                        Biodegradable packaging
+                    </button>
+
+                    <button
+                        class="suggestion"
+                        onclick="useSuggestion('How can packaging help increase shelf life?')"
+                    >
+                        Shelf life
+                    </button>
+
+                </div>
+
+
+                <div class="input-hint">
+                    Press Enter to send. Use Shift + Enter for a new line.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+    SmartPack AI • Smart Food Packaging System
+</footer>
+
+
+<script>
+
+    /* ========================================================
+       FAQ DATA
+    ======================================================== */
+
+    const faqData = [
+
+        {
+            title: "📦 Food Packaging Basics",
+
+            questions: [
+
+                {
+                    q: "What is food packaging?",
+                    a: "Food packaging is the material or container used to protect food during storage, transport and selling."
+                },
+
+                {
+                    q: "Why is packaging important?",
+                    a: "Good packaging helps protect food from moisture, oxygen, light, contamination and physical damage."
+                },
+
+                {
+                    q: "Which packaging is best for food?",
+                    a: "There is no single best packaging. It depends on the food, shelf-life target, storage conditions and protection needed."
+                },
+
+                {
+                    q: "Is expensive packaging always better?",
+                    a: "No. More expensive does not always mean better. The packaging should match the actual needs of the food."
+                },
+
+                {
+                    q: "How do I choose packaging for my product?",
+                    a: "Start with the food's moisture, oxygen, light, temperature and shelf-life needs. Then choose a suitable food-contact packaging structure."
+                }
+
+            ]
+        },
+
+
+        {
+            title: "🇮🇳 Common Indian Foods",
+
+            questions: [
+
+                {
+                    q: "What packaging should I use for paneer?",
+                    a: "Paneer usually needs hygienic, well-sealed packaging with suitable barrier protection and cold storage."
+                },
+
+                {
+                    q: "What packaging is suitable for namkeen?",
+                    a: "Namkeen needs good moisture protection so it stays crisp. A suitable sealed barrier pouch is commonly considered."
+                },
+
+                {
+                    q: "What packaging is suitable for spices?",
+                    a: "Spices usually need protection from moisture, oxygen and light. A suitable high-barrier pouch can help."
+                },
+
+                {
+                    q: "What packaging is suitable for sweets and mithai?",
+                    a: "It depends on the sweet. The packaging should protect it from moisture, contamination and physical damage."
+                },
+
+                {
+                    q: "What packaging is suitable for pickles?",
+                    a: "Pickles need leak-resistant packaging that is compatible with oily and acidic contents."
+                },
+
+                {
+                    q: "What packaging is suitable for fruits and vegetables?",
+                    a: "Fresh produce often needs packaging that manages moisture, airflow and respiration rather than simply blocking everything."
+                },
+
+                {
+                    q: "What packaging is suitable for frozen food?",
+                    a: "Frozen food needs packaging that stays suitable at low temperatures and protects against moisture and freezer damage."
+                },
+
+                {
+                    q: "What packaging is suitable for biscuits?",
+                    a: "Biscuits mainly need protection from moisture so they stay crisp, along with good sealing."
+                }
+
+            ]
+        },
+
+
+        {
+            title: "💼 Business & Manufacturing",
+
+            questions: [
+
+                {
+                    q: "I have a small food business. Which packaging should I use?",
+                    a: "Choose packaging based on your product first. Then compare protection, cost, availability and shelf-life requirements."
+                },
+
+                {
+                    q: "My product becomes soggy. What should I change?",
+                    a: "Moisture may be entering the package. Consider better moisture-barrier packaging and check whether the seal is proper."
+                },
+
+                {
+                    q: "My food loses its smell. Why?",
+                    a: "The package may not provide enough protection against aroma loss or outside air. A better barrier can help."
+                },
+
+                {
+                    q: "Can packaging increase shelf life?",
+                    a: "It can help, but packaging alone does not guarantee a longer shelf life. Food, processing and storage conditions also matter."
+                },
+
+                {
+                    q: "Can I use the same packaging for different foods?",
+                    a: "Sometimes, but not always. Different foods can need very different moisture, oxygen, light and temperature protection."
+                }
+
+            ]
+        },
+
+
+        {
+            title: "💰 Packaging Cost",
+
+            questions: [
+
+                {
+                    q: "Which packaging is cheaper?",
+                    a: "Cost depends on the material, pack size, design, quantity and supplier. A direct comparison is needed."
+                },
+
+                {
+                    q: "Is the new packaging worth the extra cost?",
+                    a: "It depends on what you gain from it, such as better protection, lower product loss or a longer validated shelf life."
+                },
+
+                {
+                    q: "Can I reduce packaging cost?",
+                    a: "Yes, sometimes. You can compare materials, thickness, pack size and suppliers without reducing the protection your product needs."
+                },
+
+                {
+                    q: "Is sustainable packaging always more expensive?",
+                    a: "Not always. Cost depends on the material, production scale, availability and required performance."
+                }
+
+            ]
+        },
+
+
+        {
+            title: "🚚 Storage & Logistics",
+
+            questions: [
+
+                {
+                    q: "Does my food need refrigeration?",
+                    a: "Some foods do and some do not. It depends on the product and its storage requirements."
+                },
+
+                {
+                    q: "Does humidity affect food packaging?",
+                    a: "Yes. Moisture can soften products, damage texture and sometimes affect packaging performance."
+                },
+
+                {
+                    q: "Does sunlight damage food?",
+                    a: "For some foods, light can affect quality, colour, nutrients or fats. Light protection may be useful when needed."
+                },
+
+                {
+                    q: "Do I need cold-chain transportation?",
+                    a: "Perishable temperature-sensitive foods may need cold-chain transport. The exact requirement depends on the product."
+                },
+
+                {
+                    q: "How should I transport food for long distances?",
+                    a: "Consider temperature, humidity, packaging strength, handling and transport time. Sensitive foods may need controlled conditions."
+                }
+
+            ]
+        },
+
+
+        {
+            title: "🌱 Sustainable Packaging",
+
+            questions: [
+
+                {
+                    q: "Can I replace plastic with biodegradable packaging?",
+                    a: "Sometimes. The alternative still needs to provide the barrier, food-contact and shelf-life performance your product needs."
+                },
+
+                {
+                    q: "Is paper packaging suitable for food?",
+                    a: "It can be suitable for some foods, but paper may need additional barrier protection depending on moisture, oil and other requirements."
+                },
+
+                {
+                    q: "Is biodegradable packaging always better?",
+                    a: "No. A sustainable option is useful only when it also works properly for the product and its required storage life."
+                },
+
+                {
+                    q: "Can I reduce plastic without affecting product quality?",
+                    a: "Possibly. The right approach is to reduce unnecessary material while keeping the protection the food actually needs."
+                }
+
+            ]
+        },
+
+
+        {
+            title: "🔍 Consumer & Package Verification",
+
+            questions: [
+
+                {
+                    q: "What should I check when I receive a food package?",
+                    a: "Check for damage, leakage, broken seals, unusual swelling and whether the label information is readable."
+                },
+
+                {
+                    q: "What does the QR code tell me?",
+                    a: "A SmartPack QR can open product information such as the product name, batch details and packaging information."
+                },
+
+                {
+                    q: "What if my package is leaking?",
+                    a: "Do not ignore it. Keep the package separate and follow the seller or manufacturer's guidance."
+                },
+
+                {
+                    q: "Can I know whether food is safe just by looking at the package?",
+                    a: "No. A visual package check can find visible problems, but it cannot confirm the internal safety or freshness of the food."
+                }
+
+            ]
+        },
+
+
+        {
+            title: "🧪 Packaging Technology",
+
+            questions: [
+
+                {
+                    q: "What is MAP packaging?",
+                    a: "MAP means Modified Atmosphere Packaging. The air inside the package is controlled to help protect certain foods."
+                },
+
+                {
+                    q: "What is an oxygen barrier?",
+                    a: "It is packaging protection that slows oxygen from passing through the package."
+                },
+
+                {
+                    q: "What is a moisture barrier?",
+                    a: "It helps stop unwanted moisture from entering or leaving the package."
+                },
+
+                {
+                    q: "Why is light protection needed?",
+                    a: "Some foods can lose quality when exposed to light, so suitable packaging can reduce that exposure."
+                },
+
+                {
+                    q: "What is shelf life?",
+                    a: "Shelf life is the period during which a food is expected to maintain its required quality under specified conditions."
+                },
+
+                {
+                    q: "What is cold-chain packaging?",
+                    a: "It is packaging and handling designed to support products that need controlled low-temperature conditions during storage and transport."
+                }
+
+            ]
+        }
+
+    ];
+
+
+    /* ========================================================
+       BUILD FAQ
+    ======================================================== */
+
+    const faqContainer =
+        document.getElementById("faqContainer");
+
+
+    faqData.forEach((category, categoryIndex) => {
+
+        const categoryDiv =
+            document.createElement("div");
+
+        categoryDiv.className =
+            "faq-category";
+
+
+        const header =
+            document.createElement("button");
+
+        header.className =
+            "faq-category-header";
+
+        header.innerHTML = `
+            <span>${category.title}</span>
+            <span class="arrow">⌄</span>
+        `;
+
+
+        const questionsDiv =
+            document.createElement("div");
+
+        questionsDiv.className =
+            "faq-questions";
+
+
+        category.questions.forEach((item, questionIndex) => {
+
+            const questionDiv =
+                document.createElement("div");
+
+            questionDiv.className =
+                "faq-question";
+
+
+            const questionButton =
+                document.createElement("button");
+
+            questionButton.className =
+                "faq-question-button";
+
+
+            questionButton.innerHTML = `
+                <span>${item.q}</span>
+                <span class="question-arrow">+</span>
+            `;
+
+
+            const answerDiv =
+                document.createElement("div");
+
+            answerDiv.className =
+                "faq-answer";
+
+            answerDiv.textContent =
+                item.a;
+
+
+            questionButton.addEventListener(
+                "click",
+                function () {
+
+                    const isOpen =
+                        questionDiv.classList.contains("active");
+
+
+                    /* Close other questions in same category */
+
+                    questionsDiv
+                        .querySelectorAll(".faq-question")
+                        .forEach(q => {
+
+                            q.classList.remove("active");
+
+                            const arrow =
+                                q.querySelector(".question-arrow");
+
+                            if (arrow) {
+                                arrow.textContent = "+";
+                            }
+
+                        });
+
+
+                    if (!isOpen) {
+
+                        questionDiv.classList.add("active");
+
+                        questionButton
+                            .querySelector(".question-arrow")
+                            .textContent = "−";
+
+                    }
+
+                }
+            );
+
+
+            questionDiv.appendChild(
+                questionButton
+            );
+
+            questionDiv.appendChild(
+                answerDiv
+            );
+
+            questionsDiv.appendChild(
+                questionDiv
+            );
+
+        });
+
+
+        header.addEventListener(
+            "click",
+            function () {
+
+                categoryDiv.classList.toggle(
+                    "open"
+                );
+
+            }
+        );
+
+
+        categoryDiv.appendChild(
+            header
+        );
+
+        categoryDiv.appendChild(
+            questionsDiv
+        );
+
+        faqContainer.appendChild(
+            categoryDiv
+        );
+
+    });
+
+
+    /* ========================================================
+       CHAT FUNCTIONS
+    ======================================================== */
+
+    const chatInput =
+        document.getElementById("chatInput");
+
+    const chatMessages =
+        document.getElementById("chatMessages");
+
+    const sendButton =
+        document.getElementById("sendButton");
+
+    const typing =
+        document.getElementById("typing");
+
+
+    function addMessage(
+        text,
+        sender
+    ) {
+
+        const message =
+            document.createElement("div");
+
+        message.classList.add(
+            "message"
+        );
+
+
+        if (sender === "user") {
+
+            message.classList.add(
+                "user-message"
+            );
+
+        } else {
+
+            message.classList.add(
+                "ai-message"
+            );
+
+        }
+
+
+        /*
+         * textContent is used instead of innerHTML
+         * so AI text cannot inject HTML into the page.
+         */
+
+        message.textContent =
+            text;
+
+
+        chatMessages.appendChild(
+            message
+        );
+
+
+        chatMessages.scrollTop =
+            chatMessages.scrollHeight;
+
+    }
+
+
+    function useSuggestion(
+        text
+    ) {
+
+        chatInput.value =
+            text;
+
+        chatInput.focus();
+
+    }
+
+
+    async function sendMessage() {
+
+        const message =
+            chatInput.value.trim();
+
+
+        if (!message) {
+            return;
+        }
+
+
+        addMessage(
+            message,
+            "user"
+        );
+
+
+        chatInput.value = "";
+
+        sendButton.disabled = true;
+
+        typing.style.display =
+            "block";
+
+
+        chatMessages.scrollTop =
+            chatMessages.scrollHeight;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/chat",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            message: message
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                data.success &&
+                data.reply
+            ) {
+
+                addMessage(
+                    data.reply,
+                    "ai"
+                );
+
+            } else {
+
+                addMessage(
+                    data.error ||
+                    "SmartPack AI could not answer right now. Please try again.",
+                    "ai"
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Chat error:",
+                error
+            );
+
+
+            addMessage(
+                "I couldn't connect to SmartPack AI right now. Please try again.",
+                "ai"
+            );
+
+        }
+
+
+        typing.style.display =
+            "none";
+
+        sendButton.disabled =
+            false;
+
+        chatInput.focus();
+
+    }
+
+
+    /* ========================================================
+       ENTER KEY
+    ======================================================== */
+
+    chatInput.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                sendMessage();
+
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+</html>

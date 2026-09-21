@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Logistics | SmartPack AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #eef4f8;
+            color: #172b3a;
+            min-height: 100vh;
+        }
+
+        /* ================= NAVBAR ================= */
+
+        .navbar {
+            background: #082f49;
+            color: white;
+            padding: 16px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #38bdf8;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #38bdf8;
+        }
+
+        /* ================= HEADER ================= */
+
+        .hero {
+            text-align: center;
+            padding: 42px 20px 25px;
+        }
+
+        .hero h1 {
+            font-size: 38px;
+            color: #082f49;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            max-width: 720px;
+            margin: auto;
+            color: #526575;
+            line-height: 1.6;
+        }
+
+        /* ================= MODE SWITCH ================= */
+
+        .mode-container {
+            max-width: 900px;
+            margin: 15px auto 25px;
+            padding: 0 20px;
+        }
+
+        .mode-switch {
+            display: flex;
+            background: white;
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #526575;
+            transition: 0.25s;
+        }
+
+        .mode-btn.active {
+            background: #082f49;
+            color: white;
+        }
+
+        /* ================= MAIN CARD ================= */
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 0 20px 50px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .card h2 {
+            color: #082f49;
+            margin-bottom: 8px;
+        }
+
+        .section-description {
+            color: #667788;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        /* ================= PRODUCT SELECT ================= */
+
+        #productMode {
+            display: none;
+        }
+
+        .product-select-box {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .product-select-box p {
+            margin-bottom: 12px;
+            color: #526575;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            outline: none;
+            font-size: 15px;
+            background: white;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.12);
+        }
+
+        /* ================= GRID ================= */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        /* ================= LOADED PRODUCT ================= */
+
+        .loaded-product {
+            display: none;
+            margin-top: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 5px solid #0284c7;
+        }
+
+        .loaded-product h3 {
+            margin-bottom: 15px;
+            color: #082f49;
+        }
+
+        .loaded-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .loaded-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .loaded-item strong {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        /* ================= BUTTON ================= */
+
+        .analyze-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .analyze-btn {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .analyze-btn:hover {
+            background: #0369a1;
+            transform: translateY(-2px);
+        }
+
+        /* ================= INFO BOX ================= */
+
+        .ai-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eff6ff;
+            border-left: 4px solid #0284c7;
+            border-radius: 8px;
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .ai-info strong {
+            color: #082f49;
+        }
+
+        /* ================= RESULT ================= */
+
+        #resultSection {
+            display: none;
+        }
+
+        .result-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            border-left: 4px solid #0284c7;
+        }
+
+        .result-item strong {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .result-item span {
+            color: #172b3a;
+            font-weight: 600;
+        }
+
+        .result-full {
+            grid-column: 1 / -1;
+        }
+
+        /* ================= LOADING ================= */
+
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #0284c7;
+            font-weight: bold;
+        }
+
+        /* ================= FOOTER ================= */
+
+        footer {
+            background: #082f49;
+            color: #cbd5e1;
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 700px) {
+
+            .hero h1 {
+                font-size: 30px;
+            }
+
+            .form-grid,
+            .result-grid,
+            .loaded-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full,
+            .result-full {
+                grid-column: auto;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .nav-links {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar">
+
+    <div class="logo">
+        SmartPack <span>AI</span>
+    </div>
+
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/recommendation">Recommendation</a>
+        <a href="/manufacturer">Manufacturer</a>
+        <a href="/inspector">Inspector</a>
+        <a href="/logistics">Logistics</a>
+    </div>
+
+</nav>
+
+
+<!-- ================= HERO ================= -->
+
+<section class="hero">
+
+    <h1>🚚 Smart Logistics</h1>
+
+    <p>
+        Analyze food transportation requirements using product
+        characteristics, packaging information and journey conditions.
+    </p>
+
+</section>
+
+
+<!-- ================= MODE SWITCH ================= -->
+
+<div class="mode-container">
+
+    <div class="mode-switch">
+
+        <button
+            class="mode-btn active"
+            id="manualModeBtn"
+            onclick="showManualMode()">
+
+            Manual Mode
+
+        </button>
+
+        <button
+            class="mode-btn"
+            id="productModeBtn"
+            onclick="showProductMode()">
+
+            Product-Connected Mode
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="container">
+
+    <!-- ================= PRODUCT CONNECTED MODE ================= -->
+
+    <div class="card" id="productMode">
+
+        <h2>🔗 Connect Existing Product</h2>
+
+        <p class="section-description">
+            Select an existing product and SmartPack AI will use
+            its available product and packaging information.
+        </p>
+
+        <div class="product-select-box">
+
+            <p>
+                Select a product from your existing SmartPack system:
+            </p>
+
+            <select id="existingProduct">
+
+                <option value="">
+                    -- Select Product --
+                </option>
+
+                <!-- Products will be loaded from Flask later -->
+
+            </select>
+
+            <div
+                class="loaded-product"
+                id="loadedProduct">
+
+                <h3>📦 Product Information</h3>
+
+                <div class="loaded-grid">
+
+                    <div class="loaded-item">
+                        <strong>Food/Product</strong>
+                        <span id="loadedProductName">-</span>
+                    </div>
+
+                    <div class="loaded-item">
+                        <strong>Category</strong>
+                        <span id="loadedCategory">-</span>
+                    </div>
+
+                    <div class="loaded-item">
+                        <strong>Pack Size</strong>
+                        <span id="loadedPackSize">-</span>
+                    </div>
+
+                    <div class="loaded-item">
+                        <strong>Packaging Material</strong>
+                        <span id="loadedMaterial">-</span>
+                    </div>
+
+                    <div class="loaded-item">
+                        <strong>Required Shelf Life</strong>
+                        <span id="loadedShelfLife">-</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= MANUAL PRODUCT INFORMATION ================= -->
+
+    <div class="card" id="manualMode">
+
+        <h2>📦 Product Information</h2>
+
+        <p class="section-description">
+            Enter the food/product details so SmartPack AI can
+            understand its transportation requirements.
+        </p>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label>
+                    Food / Product Name
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="productName"
+                    placeholder="Example: Strawberries">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Category</label>
+
+                <input
+                    type="text"
+                    id="category"
+                    placeholder="Example: Fresh Fruit">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Pack Size</label>
+
+                <input
+                    type="text"
+                    id="packSize"
+                    placeholder="Example: 500 g">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Required Shelf Life</label>
+
+                <input
+                    type="text"
+                    id="shelfLife"
+                    placeholder="Example: 7 days">
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label>Packaging Material</label>
+
+                <input
+                    type="text"
+                    id="packagingMaterial"
+                    placeholder="Example: PET tray + MAP film">
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= TRANSPORT INFORMATION ================= -->
+
+    <div class="card">
+
+        <h2>🚚 Transport Information</h2>
+
+        <p class="section-description">
+            Tell SmartPack AI about the delivery journey.
+        </p>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label>
+                    Origin
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="origin"
+                    placeholder="Example: Bhavnagar, Gujarat">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Destination
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="destination"
+                    placeholder="Example: Ahmedabad, Gujarat">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Transport Mode</label>
+
+                <select id="transportMode">
+
+                    <option value="Road">Road</option>
+                    <option value="Rail">Rail</option>
+                    <option value="Air">Air</option>
+                    <option value="Sea">Sea</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Expected Transport Duration</label>
+
+                <input
+                    type="text"
+                    id="transportDuration"
+                    placeholder="Example: 8 hours">
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label>
+                    Temperature-Controlled Transport Available?
+                </label>
+
+                <select id="temperatureControlled">
+
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= PRODUCT SENSITIVITY ================= -->
+
+    <div class="card">
+
+        <h2>🔬 Product Sensitivity</h2>
+
+        <p class="section-description">
+            These characteristics help SmartPack AI identify
+            transportation risks.
+        </p>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label>Perishability</label>
+
+                <select id="perishability">
+
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Temperature Requirement</label>
+
+                <input
+                    type="text"
+                    id="temperatureRequirement"
+                    placeholder="Example: 2–8°C">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Humidity Sensitivity</label>
+
+                <select id="humiditySensitivity">
+
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Light Sensitivity</label>
+
+                <select id="lightSensitivity">
+
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label>Respiration Level</label>
+
+                <select id="respiration">
+
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- AI INFO -->
+
+        <div class="ai-info">
+
+            <strong>🤖 SmartPack AI:</strong>
+
+            The logistics recommendation will consider the food item,
+            packaging, shelf-life requirement, transportation route,
+            transport duration and product sensitivity.
+
+        </div>
+
+
+        <!-- ANALYZE BUTTON -->
+
+        <div class="analyze-section">
+
+            <button
+                class="analyze-btn"
+                onclick="analyzeLogistics()">
+
+                🚚 Analyze Logistics
+
+            </button>
+
+        </div>
+
+        <div id="loading">
+            SmartPack AI is analyzing logistics requirements...
+        </div>
+
+    </div>
+
+
+    <!-- ================= RESULT ================= -->
+
+    <div class="card" id="resultSection">
+
+        <h2>📊 Logistics Recommendation</h2>
+
+        <p class="section-description">
+            SmartPack AI's assessment of the transportation requirements.
+        </p>
+
+        <div class="result-box">
+
+            <div class="result-grid">
+
+                <div class="result-item">
+
+                    <strong>Recommended Temperature</strong>
+
+                    <span id="resultTemperature">-</span>
+
+                </div>
+
+
+                <div class="result-item">
+
+                    <strong>Humidity Requirement</strong>
+
+                    <span id="resultHumidity">-</span>
+
+                </div>
+
+
+                <div class="result-item">
+
+                    <strong>Light Protection</strong>
+
+                    <span id="resultLight">-</span>
+
+                </div>
+
+
+                <div class="result-item">
+
+                    <strong>Cold Chain</strong>
+
+                    <span id="resultColdChain">-</span>
+
+                </div>
+
+
+                <div class="result-item">
+
+                    <strong>Transport Recommendation</strong>
+
+                    <span id="resultTransport">-</span>
+
+                </div>
+
+
+                <div class="result-item">
+
+                    <strong>Risk Level</strong>
+
+                    <span id="resultRisk">-</span>
+
+                </div>
+
+
+                <div class="result-item result-full">
+
+                    <strong>Handling Instructions</strong>
+
+                    <span id="resultHandling">-</span>
+
+                </div>
+
+
+                <div class="result-item result-full">
+
+                    <strong>Main Logistics Risks</strong>
+
+                    <span id="resultRisks">-</span>
+
+                </div>
+
+
+                <div class="result-item result-full">
+
+                    <strong>SmartPack AI Explanation</strong>
+
+                    <span id="resultExplanation">-</span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+    SmartPack AI • Intelligent Food Packaging & Logistics
+
+</footer>
+
+
+<script>
+
+    let currentMode = "manual";
+
+
+    /* ================= MODE SWITCH ================= */
+
+    function showManualMode() {
+
+        currentMode = "manual";
+
+        document.getElementById("manualMode").style.display = "block";
+        document.getElementById("productMode").style.display = "none";
+
+        document
+            .getElementById("manualModeBtn")
+            .classList.add("active");
+
+        document
+            .getElementById("productModeBtn")
+            .classList.remove("active");
+    }
+
+
+    function showProductMode() {
+
+        currentMode = "product";
+
+        document.getElementById("manualMode").style.display = "none";
+        document.getElementById("productMode").style.display = "block";
+
+        document
+            .getElementById("manualModeBtn")
+            .classList.remove("active");
+
+        document
+            .getElementById("productModeBtn")
+            .classList.add("active");
+    }
+
+
+    /* ================= PRODUCT SELECTION ================= */
+
+    document
+        .getElementById("existingProduct")
+        .addEventListener("change", function () {
+
+            const selected = this.value;
+
+            if (!selected) {
+
+                document.getElementById("loadedProduct").style.display = "none";
+
+                return;
+            }
+
+            /*
+                Product data will be loaded from Flask
+                in the next step.
+            */
+
+            document.getElementById("loadedProduct").style.display = "block";
+
+        });
+
+
+    /* ================= ANALYZE ================= */
+
+    async function analyzeLogistics() {
+
+        let productName = "";
+
+        if (currentMode === "manual") {
+
+            productName =
+                document
+                    .getElementById("productName")
+                    .value
+                    .trim();
+
+            if (!productName) {
+
+                alert("Please enter the food/product name.");
+
+                return;
+            }
+
+        } else {
+
+            productName =
+                document
+                    .getElementById("loadedProductName")
+                    .textContent
+                    .trim();
+
+            if (!productName || productName === "-") {
+
+                alert("Please select an existing product.");
+
+                return;
+            }
+        }
+
+
+        const origin =
+            document
+                .getElementById("origin")
+                .value
+                .trim();
+
+        const destination =
+            document
+                .getElementById("destination")
+                .value
+                .trim();
+
+
+        if (!origin || !destination) {
+
+            alert("Please enter origin and destination.");
+
+            return;
+        }
+
+
+        const data = {
+
+            mode: currentMode,
+
+            product_name: productName,
+
+            category:
+                document
+                    .getElementById("category")
+                    .value
+                    .trim(),
+
+            pack_size:
+                document
+                    .getElementById("packSize")
+                    .value
+                    .trim(),
+
+            required_shelf_life:
+                document
+                    .getElementById("shelfLife")
+                    .value
+                    .trim(),
+
+            packaging_material:
+                document
+                    .getElementById("packagingMaterial")
+                    .value
+                    .trim(),
+
+            origin: origin,
+
+            destination: destination,
+
+            transport_mode:
+                document
+                    .getElementById("transportMode")
+                    .value,
+
+            transport_duration:
+                document
+                    .getElementById("transportDuration")
+                    .value
+                    .trim(),
+
+            temperature_controlled:
+                document
+                    .getElementById("temperatureControlled")
+                    .value,
+
+            perishability:
+                document
+                    .getElementById("perishability")
+                    .value,
+
+            temperature_requirement:
+                document
+                    .getElementById("temperatureRequirement")
+                    .value
+                    .trim(),
+
+            humidity_sensitivity:
+                document
+                    .getElementById("humiditySensitivity")
+                    .value,
+
+            light_sensitivity:
+                document
+                    .getElementById("lightSensitivity")
+                    .value,
+
+            respiration:
+                document
+                    .getElementById("respiration")
+                    .value
+        };
+
+
+        /*
+            Backend connection will be added next.
+            For now we only verify that the form works.
+        */
+
+        console.log("Smart Logistics Data:", data);
+
+        document.getElementById("loading").style.display = "block";
+
+        setTimeout(function () {
+
+            document.getElementById("loading").style.display = "none";
+
+            document.getElementById("resultSection").style.display = "block";
+
+            document.getElementById("resultTemperature").textContent =
+                "Waiting for SmartPack AI";
+
+            document.getElementById("resultHumidity").textContent =
+                "Waiting for SmartPack AI";
+
+            document.getElementById("resultLight").textContent =
+                "Waiting for SmartPack AI";
+
+            document.getElementById("resultColdChain").textContent =
+                "Waiting for SmartPack AI";
+
+            document.getElementById("resultTransport").textContent =
+                "Waiting for SmartPack AI";
+
+            document.getElementById("resultRisk").textContent =
+                "Waiting for SmartPack AI";
+
+            document.getElementById("resultHandling").textContent =
+                "Backend connection will be added next.";
+
+            document.getElementById("resultRisks").textContent =
+                "Backend connection will be added next.";
+
+            document.getElementById("resultExplanation").textContent =
+                "SmartPack AI connection will be added in the next step.";
+
+        }, 600);
+
+    }
+
+</script>
+
+</body>
+</html>

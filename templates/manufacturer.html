@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Manufacturer Portal | SmartPack AI
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            background: #f4f7fb;
+
+            color: #1e293b;
+
+            line-height: 1.5;
+        }
+
+
+        /* ================= HEADER ================= */
+
+        header {
+
+            background: #0b1f3a;
+
+            color: white;
+
+            padding: 18px 7%;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            flex-wrap: wrap;
+
+            gap: 15px;
+        }
+
+
+        .logo {
+
+            font-size: 23px;
+
+            font-weight: bold;
+        }
+
+
+        nav {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 16px;
+        }
+
+
+        nav a {
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 14px;
+        }
+
+
+        nav a:hover {
+
+            color: #38bdf8;
+        }
+
+
+        /* ================= MAIN ================= */
+
+        .container {
+
+            width: 90%;
+
+            max-width: 1100px;
+
+            margin: 35px auto;
+        }
+
+
+        .page-title {
+
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+
+        .page-title h1 {
+
+            color: #0b1f3a;
+
+            font-size: 32px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .page-title p {
+
+            color: #64748b;
+        }
+
+
+        /* ================= CARD ================= */
+
+        .card {
+
+            background: white;
+
+            padding: 28px;
+
+            border-radius: 15px;
+
+            box-shadow:
+                0 8px 25px
+                rgba(0, 0, 0, 0.08);
+
+            margin-bottom: 25px;
+        }
+
+
+        .card h2 {
+
+            color: #0b1f3a;
+
+            margin-bottom: 20px;
+        }
+
+
+        .section-title {
+
+            margin-top: 25px;
+
+            margin-bottom: 15px;
+
+            padding-bottom: 8px;
+
+            border-bottom:
+                2px solid #e2e8f0;
+
+            color: #164e63;
+        }
+
+
+        /* ================= FORM ================= */
+
+        .form-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 18px;
+        }
+
+
+        .form-group {
+
+            display: flex;
+
+            flex-direction: column;
+        }
+
+
+        .full {
+
+            grid-column: 1 / -1;
+        }
+
+
+        label {
+
+            font-weight: bold;
+
+            margin-bottom: 7px;
+
+            color: #334155;
+        }
+
+
+        input,
+        select,
+        textarea {
+
+            width: 100%;
+
+            padding: 12px;
+
+            border:
+                1px solid #cbd5e1;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+
+            background: white;
+        }
+
+
+        textarea {
+
+            resize: vertical;
+
+            min-height: 80px;
+        }
+
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+
+            outline: none;
+
+            border-color: #0284c7;
+
+            box-shadow:
+                0 0 0 2px
+                rgba(2, 132, 199, 0.12);
+        }
+
+
+        .hint {
+
+            font-size: 12px;
+
+            color: #64748b;
+
+            margin-top: 5px;
+        }
+
+
+        /* ================= BUTTON ================= */
+
+        .button-container {
+
+            text-align: center;
+
+            margin-top: 25px;
+        }
+
+
+        button {
+
+            background: #0284c7;
+
+            color: white;
+
+            border: none;
+
+            padding: 13px 30px;
+
+            border-radius: 8px;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+
+        button:hover {
+
+            background: #0369a1;
+        }
+
+
+        button:disabled {
+
+            background: #94a3b8;
+
+            cursor: not-allowed;
+        }
+
+
+        /* ================= STATUS ================= */
+
+        .status {
+
+            display: none;
+
+            padding: 13px;
+
+            border-radius: 8px;
+
+            margin-top: 20px;
+
+            font-size: 14px;
+        }
+
+
+        .status.success {
+
+            background: #ecfdf5;
+
+            color: #166534;
+
+            border-left:
+                4px solid #16a34a;
+        }
+
+
+        .status.error {
+
+            background: #fef2f2;
+
+            color: #991b1b;
+
+            border-left:
+                4px solid #dc2626;
+        }
+
+
+        /* ================= RESULT ================= */
+
+        #resultSection {
+
+            display: none;
+        }
+
+
+        .recommendation-box {
+
+            background: #f0fdf4;
+
+            border-left:
+                5px solid #16a34a;
+
+            padding: 18px;
+
+            border-radius: 8px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .recommendation-box h3 {
+
+            color: #166534;
+
+            margin-bottom: 8px;
+        }
+
+
+        .material {
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            color: #0f766e;
+        }
+
+
+        .result-table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            margin-top: 15px;
+        }
+
+
+        .result-table th,
+        .result-table td {
+
+            border:
+                1px solid #dbe3ec;
+
+            padding: 11px;
+
+            text-align: left;
+
+            vertical-align: top;
+        }
+
+
+        .result-table th {
+
+            background: #eaf2f8;
+
+            color: #0b1f3a;
+
+            width: 25%;
+        }
+
+
+        .result-list {
+
+            padding-left: 20px;
+        }
+
+
+        .result-list li {
+
+            margin-bottom: 5px;
+        }
+
+
+        /* ================= QR ================= */
+
+        #qrSection {
+
+            display: none;
+
+            margin-top: 30px;
+
+            text-align: center;
+
+            border-top:
+                2px solid #e2e8f0;
+
+            padding-top: 25px;
+        }
+
+
+        #qrImage {
+
+            width: 260px;
+
+            max-width: 80%;
+
+            margin: 15px auto;
+
+            display: block;
+
+            border:
+                10px solid white;
+
+            box-shadow:
+                0 5px 20px
+                rgba(0, 0, 0, 0.12);
+        }
+
+
+        .qr-note {
+
+            color: #64748b;
+
+            font-size: 13px;
+
+            max-width: 650px;
+
+            margin: auto;
+
+        }
+
+
+        .download-button {
+
+            display: inline-block;
+
+            margin-top: 15px;
+
+            background: #16a34a;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 11px 20px;
+
+            border-radius: 7px;
+
+            font-weight: bold;
+        }
+
+
+        .download-button:hover {
+
+            background: #15803d;
+        }
+
+
+        /* ================= PRODUCT PREVIEW ================= */
+
+        .product-preview {
+
+            background: #f8fafc;
+
+            border:
+                1px solid #e2e8f0;
+
+            border-radius: 10px;
+
+            padding: 18px;
+
+            margin-top: 20px;
+        }
+
+
+        .product-preview h3 {
+
+            color: #0b1f3a;
+
+            margin-bottom: 12px;
+        }
+
+
+        .preview-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 10px;
+        }
+
+
+        .preview-item {
+
+            background: white;
+
+            padding: 10px;
+
+            border-radius: 6px;
+
+            border:
+                1px solid #e2e8f0;
+        }
+
+
+        .preview-label {
+
+            font-size: 11px;
+
+            color: #64748b;
+
+            text-transform: uppercase;
+        }
+
+
+        .preview-value {
+
+            font-weight: bold;
+
+            color: #1e293b;
+
+            margin-top: 3px;
+        }
+
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 700px) {
+
+            header {
+
+                justify-content: center;
+
+                text-align: center;
+            }
+
+
+            nav {
+
+                justify-content: center;
+            }
+
+
+            .form-grid,
+            .preview-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .full {
+
+                grid-column: auto;
+            }
+
+
+            .result-table {
+
+                font-size: 13px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ======================================================
+     HEADER
+======================================================= -->
+
+<header>
+
+    <div class="logo">
+        SmartPack AI
+    </div>
+
+
+    <nav>
+
+        <a href="/">
+            Home
+        </a>
+
+        <a href="/recommendation">
+            Recommendation
+        </a>
+
+        <a href="/manufacturer">
+            Manufacturer
+        </a>
+
+        <a href="/inspector">
+            Inspector
+        </a>
+
+        <a href="/logistics">
+            Logistics
+        </a>
+
+        <a href="/freshness">
+            Freshness
+        </a>
+
+        <a href="/chatbot">
+            AI Assistant
+        </a>
+
+    </nav>
+
+</header>
+
+
+
+<!-- ======================================================
+     MAIN
+======================================================= -->
+
+<main class="container">
+
+
+    <div class="page-title">
+
+        <h1>
+            Manufacturer Portal
+        </h1>
+
+        <p>
+            Create packaging information and generate
+            a self-contained product QR code.
+        </p>
+
+    </div>
+
+
+
+    <!-- ==================================================
+         MANUFACTURER INFORMATION
+    =================================================== -->
+
+    <div class="card">
+
+        <h2>
+            Manufacturer Information
+        </h2>
+
+
+        <div class="form-grid">
+
+
+            <div class="form-group">
+
+                <label for="manufacturer_name">
+                    Manufacturer / Company Name *
+                </label>
+
+                <input
+                    type="text"
+                    id="manufacturer_name"
+                    placeholder="Example: ABC Foods Pvt. Ltd."
+                >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="brand_name">
+                    Brand Name *
+                </label>
+
+                <input
+                    type="text"
+                    id="brand_name"
+                    placeholder="Example: SmartFoods"
+                >
+
+            </div>
+
+
+
+            <div class="form-group full">
+
+                <label for="manufacturer_address">
+                    Manufacturer Address
+                </label>
+
+                <textarea
+                    id="manufacturer_address"
+                    placeholder="Enter company / manufacturing address"
+                ></textarea>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             PRODUCT INFORMATION
+        =================================================== -->
+
+        <h3 class="section-title">
+            Product Information
+        </h3>
+
+
+        <div class="form-grid">
+
+
+            <div class="form-group">
+
+                <label for="product">
+                    Product Name *
+                </label>
+
+                <input
+                    type="text"
+                    id="product"
+                    placeholder="Example: Badam"
+                >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="category">
+                    Product Category *
+                </label>
+
+                <select id="category">
+
+                    <option value="">
+                        Select category
+                    </option>
+
+                    <option value="snacks">
+                        Snacks / Namkeen / Chips / Gathiya / Khakhra
+                    </option>
+
+                    <option value="dry fruits">
+                        Dry Fruits / Nuts
+                    </option>
+
+                    <option value="fruit">
+                        Fresh Fruit
+                    </option>
+
+                    <option value="vegetable">
+                        Fresh Vegetable
+                    </option>
+
+                    <option value="spice">
+                        Spices
+                    </option>
+
+                    <option value="biscuit">
+                        Biscuits / Bakery
+                    </option>
+
+                    <option value="dairy">
+                        Dairy
+                    </option>
+
+                    <option value="frozen">
+                        Frozen Food
+                    </option>
+
+                    <option value="ready-to-eat">
+                        Ready-to-Eat / Cooked Food
+                    </option>
+
+                    <option value="pickle">
+                        Pickle / Sauce / Chutney
+                    </option>
+
+                    <option value="other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="pack_size">
+                    Pack Size *
+                </label>
+
+                <input
+                    type="text"
+                    id="pack_size"
+                    placeholder="Example: 500 g"
+                >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="batch_number">
+                    Batch / Lot Number *
+                </label>
+
+                <input
+                    type="text"
+                    id="batch_number"
+                    placeholder="Example: BADAM-26001"
+                >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="manufacturing_date">
+                    Manufacturing Date
+                </label>
+
+                <input
+                    type="date"
+                    id="manufacturing_date"
+                >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="expiry_date">
+                    Expiry / Best Before
+                </label>
+
+                <input
+                    type="date"
+                    id="expiry_date"
+                >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="required_shelf_life">
+                    Required Shelf Life
+                </label>
+
+                <input
+                    type="text"
+                    id="required_shelf_life"
+                    placeholder="Example: 6 months"
+                >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="old_material">
+                    Current Packaging Material
+                </label>
+
+                <input
+                    type="text"
+                    id="old_material"
+                    placeholder="Example: LDPE pouch"
+                >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="old_packaging_cost">
+                    Current Packaging Cost (₹)
+                </label>
+
+                <input
+                    type="number"
+                    id="old_packaging_cost"
+                    placeholder="Example: 2.50"
+                    min="0"
+                    step="0.01"
+                >
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             PRODUCT CHARACTERISTICS
+        =================================================== -->
+
+        <h3 class="section-title">
+            Product Characteristics
+        </h3>
+
+
+        <div class="form-grid">
+
+
+            <div class="form-group">
+
+                <label for="moisture">
+                    Moisture Sensitivity
+                </label>
+
+                <select id="moisture">
+
+                    <option value="low">
+                        Low
+                    </option>
+
+                    <option value="medium" selected>
+                        Medium
+                    </option>
+
+                    <option value="high">
+                        High
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="oxygen">
+                    Oxygen Sensitivity
+                </label>
+
+                <select id="oxygen">
+
+                    <option value="low">
+                        Low
+                    </option>
+
+                    <option value="medium" selected>
+                        Medium
+                    </option>
+
+                    <option value="high">
+                        High
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="light">
+                    Light Sensitivity
+                </label>
+
+                <select id="light">
+
+                    <option value="low">
+                        Low
+                    </option>
+
+                    <option value="medium" selected>
+                        Medium
+                    </option>
+
+                    <option value="high">
+                        High
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="perishability">
+                    Perishability
+                </label>
+
+                <select id="perishability">
+
+                    <option value="low">
+                        Low
+                    </option>
+
+                    <option value="medium" selected>
+                        Medium
+                    </option>
+
+                    <option value="high">
+                        High
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="respiration">
+                    Respiration Activity
+                </label>
+
+                <select id="respiration">
+
+                    <option value="low">
+                        Low
+                    </option>
+
+                    <option value="medium" selected>
+                        Medium
+                    </option>
+
+                    <option value="high">
+                        High
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             GENERATE
+        =================================================== -->
+
+        <div class="button-container">
+
+            <button
+                id="generateButton"
+                onclick="generateManufacturerRecord()"
+            >
+                Generate Packaging Record
+            </button>
+
+        </div>
+
+
+        <div
+            id="status"
+            class="status"
+        ></div>
+
+    </div>
+
+
+
+    <!-- ==================================================
+         RESULT
+    =================================================== -->
+
+    <div
+        id="resultSection"
+        class="card"
+    >
+
+        <h2>
+            Manufacturer Packaging Record
+        </h2>
+
+
+        <div class="recommendation-box">
+
+            <h3>
+                Suggested Packaging
+            </h3>
+
+
+            <div id="finalPackaging"></div>
+
+
+            <div
+                id="finalMaterial"
+                class="material"
+            ></div>
+
+        </div>
+
+
+
+        <table class="result-table">
+
+            <tbody>
+
+
+                <tr>
+
+                    <th>
+                        Why Selected
+                    </th>
+
+                    <td id="whySelected"></td>
+
+                </tr>
+
+
+                <tr>
+
+                    <th>
+                        Benefits
+                    </th>
+
+                    <td id="benefits"></td>
+
+                </tr>
+
+
+                <tr>
+
+                    <th>
+                        Shelf Life
+                    </th>
+
+                    <td id="shelfLife"></td>
+
+                </tr>
+
+
+            </tbody>
+
+        </table>
+
+
+
+        <!-- ==================================================
+             PRODUCT PREVIEW
+        =================================================== -->
+
+        <div class="product-preview">
+
+            <h3>
+                QR Product Information
+            </h3>
+
+
+            <div
+                id="previewGrid"
+                class="preview-grid"
+            ></div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             QR
+        =================================================== -->
+
+        <div id="qrSection">
+
+            <h3>
+                Product QR Code
+            </h3>
+
+
+            <p class="qr-note">
+
+                This QR contains the product information
+                directly. The prototype does not require
+                a database to store this QR data.
+
+            </p>
+
+
+            <img
+                id="qrImage"
+                alt="Product QR Code"
+            >
+
+
+            <a
+                id="downloadQR"
+                class="download-button"
+                download="smartpack-product-qr.png"
+            >
+                Download QR Code
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+
+<script>
+
+/* =========================================================
+   GENERATE MANUFACTURER RECORD
+========================================================= */
+
+async function generateManufacturerRecord() {
+
+
+    const button =
+        document.getElementById(
+            "generateButton"
+        );
+
+
+    const product =
+        document.getElementById(
+            "product"
+        ).value.trim();
+
+
+    const category =
+        document.getElementById(
+            "category"
+        ).value;
+
+
+    const manufacturerName =
+        document.getElementById(
+            "manufacturer_name"
+        ).value.trim();
+
+
+    const brandName =
+        document.getElementById(
+            "brand_name"
+        ).value.trim();
+
+
+    const address =
+        document.getElementById(
+            "manufacturer_address"
+        ).value.trim();
+
+
+    const packSize =
+        document.getElementById(
+            "pack_size"
+        ).value.trim();
+
+
+    const batchNumber =
+        document.getElementById(
+            "batch_number"
+        ).value.trim();
+
+
+    const manufacturingDate =
+        document.getElementById(
+            "manufacturing_date"
+        ).value;
+
+
+    const expiryDate =
+        document.getElementById(
+            "expiry_date"
+        ).value;
+
+
+    const requiredShelfLife =
+        document.getElementById(
+            "required_shelf_life"
+        ).value.trim();
+
+
+    const oldMaterial =
+        document.getElementById(
+            "old_material"
+        ).value.trim();
+
+
+    const oldPackagingCost =
+        document.getElementById(
+            "old_packaging_cost"
+        ).value.trim();
+
+
+    const moisture =
+        document.getElementById(
+            "moisture"
+        ).value;
+
+
+    const oxygen =
+        document.getElementById(
+            "oxygen"
+        ).value;
+
+
+    const light =
+        document.getElementById(
+            "light"
+        ).value;
+
+
+    const perishability =
+        document.getElementById(
+            "perishability"
+        ).value;
+
+
+    const respiration =
+        document.getElementById(
+            "respiration"
+        ).value;
+
+
+    /* =====================================================
+       VALIDATION
+    ====================================================== */
+
+    if (!manufacturerName) {
+
+        showStatus(
+            "Please enter the manufacturer name.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if (!brandName) {
+
+        showStatus(
+            "Please enter the brand name.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if (!product) {
+
+        showStatus(
+            "Please enter the product name.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if (!category) {
+
+        showStatus(
+            "Please select a product category.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if (!packSize) {
+
+        showStatus(
+            "Please enter the pack size.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if (!batchNumber) {
+
+        showStatus(
+            "Please enter the batch / lot number.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    /* =====================================================
+       DATA
+    ====================================================== */
+
+    const data = {
+
+        manufacturer_name:
+            manufacturerName,
+
+        brand_name:
+            brandName,
+
+        manufacturer_address:
+            address,
+
+        product:
+            product,
+
+        category:
+            category,
+
+        pack_size:
+            packSize,
+
+        batch_number:
+            batchNumber,
+
+        manufacturing_date:
+            manufacturingDate,
+
+        expiry_date:
+            expiryDate,
+
+        required_shelf_life:
+            requiredShelfLife,
+
+        old_material:
+            oldMaterial,
+
+        old_packaging_cost:
+            oldPackagingCost,
+
+        moisture:
+            moisture,
+
+        oxygen:
+            oxygen,
+
+        light:
+            light,
+
+        perishability:
+            perishability,
+
+        respiration:
+            respiration
+
+    };
+
+
+    /* =====================================================
+       BUTTON
+    ====================================================== */
+
+    button.disabled = true;
+
+    button.innerText =
+        "Generating...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/manufacturer/create",
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(data)
+
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.error ||
+                "Unable to generate record."
+            );
+
+        }
+
+
+        /* =================================================
+           DISPLAY RESULT
+        ================================================= */
+
+        displayResult(
+            result
+        );
+
+
+        showStatus(
+            "Manufacturer packaging record generated successfully.",
+            "success"
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        showStatus(
+            error.message ||
+            "Something went wrong.",
+            "error"
+        );
+
+    }
+
+
+    button.disabled = false;
+
+    button.innerText =
+        "Generate Packaging Record";
+
+}
+
+
+/* =========================================================
+   DISPLAY RESULT
+========================================================= */
+
+function displayResult(
+    result
+) {
+
+
+    const recommendation =
+        result.recommendation;
+
+
+    document.getElementById(
+        "resultSection"
+    ).style.display = "block";
+
+
+    /* =====================================================
+       PACKAGING
+    ====================================================== */
+
+    document.getElementById(
+        "finalPackaging"
+    ).innerHTML =
+
+        "<strong>" +
+
+        escapeHtml(
+            recommendation.final_packaging
+        ) +
+
+        "</strong>";
+
+
+    document.getElementById(
+        "finalMaterial"
+    ).innerHTML =
+
+        "Suggested Material: " +
+
+        "<strong>" +
+
+        escapeHtml(
+            recommendation.final_material
+        ) +
+
+        "</strong>";
+
+
+    /* =====================================================
+       WHY
+    ====================================================== */
+
+    document.getElementById(
+        "whySelected"
+    ).innerHTML =
+
+        createList(
+            recommendation.why_selected
+        );
+
+
+    /* =====================================================
+       BENEFITS
+    ====================================================== */
+
+    document.getElementById(
+        "benefits"
+    ).innerHTML =
+
+        createList(
+            recommendation.benefits
+        );
+
+
+    /* =====================================================
+       SHELF LIFE
+    ====================================================== */
+
+    const shelf =
+        recommendation.shelf_life || {};
+
+
+    document.getElementById(
+        "shelfLife"
+    ).innerHTML =
+
+        "<strong>Target:</strong> " +
+
+        escapeHtml(
+            shelf.user_target ||
+            "Not specified"
+        ) +
+
+        "<br><br>" +
+
+        "<strong>Assessment:</strong> " +
+
+        escapeHtml(
+            shelf.assessment ||
+            "Requires shelf-life validation."
+        );
+
+
+    /* =====================================================
+       PRODUCT PREVIEW
+    ====================================================== */
+
+    const productData =
+        result.product_data;
+
+
+    const preview =
+        document.getElementById(
+            "previewGrid"
+        );
+
+
+    preview.innerHTML = "";
+
+
+    const fields = [
+
+        [
+            "Brand",
+            productData.brand_name
+        ],
+
+        [
+            "Product",
+            productData.product
+        ],
+
+        [
+            "Category",
+            productData.category
+        ],
+
+        [
+            "Pack Size",
+            productData.pack_size
+        ],
+
+        [
+            "Batch",
+            productData.batch_number
+        ],
+
+        [
+            "Manufactured",
+            productData.manufacturing_date ||
+            "Not provided"
+        ],
+
+        [
+            "Expiry / Best Before",
+            productData.expiry_date ||
+            "Not provided"
+        ],
+
+        [
+            "Packaging",
+            recommendation.final_material
+        ]
+
+    ];
+
+
+    fields.forEach(
+        function(field) {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "preview-item";
+
+
+            div.innerHTML =
+
+                "<div class='preview-label'>" +
+
+                escapeHtml(
+                    field[0]
+                ) +
+
+                "</div>" +
+
+                "<div class='preview-value'>" +
+
+                escapeHtml(
+                    field[1]
+                ) +
+
+                "</div>";
+
+
+            preview.appendChild(
+                div
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       QR IMAGE
+    ====================================================== */
+
+    const qrSection =
+        document.getElementById(
+            "qrSection"
+        );
+
+
+    const qrImage =
+        document.getElementById(
+            "qrImage"
+        );
+
+
+    const downloadQR =
+        document.getElementById(
+            "downloadQR"
+        );
+
+
+    qrImage.src =
+        result.qr_code;
+
+
+    downloadQR.href =
+        result.qr_code;
+
+
+    qrSection.style.display =
+        "block";
+
+
+    /* =====================================================
+       SCROLL
+    ====================================================== */
+
+    document.getElementById(
+        "resultSection"
+    ).scrollIntoView({
+
+        behavior: "smooth"
+
+    });
+
+}
+
+
+/* =========================================================
+   LIST
+========================================================= */
+
+function createList(
+    items
+) {
+
+    if (
+        !items ||
+        items.length === 0
+    ) {
+
+        return "Not specified.";
+
+    }
+
+
+    let html =
+        "<ul class='result-list'>";
+
+
+    items.forEach(
+        function(item) {
+
+            html +=
+
+                "<li>" +
+
+                escapeHtml(
+                    item
+                ) +
+
+                "</li>";
+
+        }
+    );
+
+
+    html +=
+        "</ul>";
+
+
+    return html;
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function showStatus(
+    message,
+    type
+) {
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    status.innerText =
+        message;
+
+
+    status.className =
+        "status " +
+        type;
+
+
+    status.style.display =
+        "block";
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(
+    value
+) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.textContent =
+        value == null
+            ? ""
+            : String(value);
+
+
+    return div.innerHTML;
+
+}
+
+</script>
+
+</body>
+
+</html>
