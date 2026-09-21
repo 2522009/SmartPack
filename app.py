@@ -1265,6 +1265,10 @@ Keep arrays short.
     "/api/recommendation",
     methods=["POST"]
 )
+@app.route(
+    "/api/recommend/start",
+    methods=["POST"]
+)
 def recommend():
 
     data = request.get_json(silent=True) or {}
