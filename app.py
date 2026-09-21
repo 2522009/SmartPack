@@ -485,6 +485,36 @@ def run_smartpack_ai_image_request(
 
 
 # ============================================================
+# API ERROR HANDLERS
+# ============================================================
+
+@app.errorhandler(404)
+def handle_not_found(error):
+
+    if request.path.startswith("/api/"):
+
+        return jsonify({
+            "success": False,
+            "error": "API endpoint not found: " + request.path
+        }), 404
+
+    return error
+
+
+@app.errorhandler(500)
+def handle_server_error(error):
+
+    if request.path.startswith("/api/"):
+
+        return jsonify({
+            "success": False,
+            "error": "SmartPack server error while processing the request."
+        }), 500
+
+    return error
+
+
+# ============================================================
 # BASIC PAGES
 # ============================================================
 
@@ -1231,9 +1261,13 @@ Keep arrays short.
     "/api/recommend",
     methods=["POST"]
 )
+@app.route(
+    "/api/recommendation",
+    methods=["POST"]
+)
 def recommend():
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
 
 
     if not data:
