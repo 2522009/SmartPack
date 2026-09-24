@@ -1112,52 +1112,151 @@
         };
 
 
-        /*
-            Backend connection will be added next.
-            For now we only verify that the form works.
-        */
+        const button =
+            document.querySelector(".analyze-btn");
 
-        console.log("Smart Logistics Data:", data);
+        const loading =
+            document.getElementById("loading");
 
-        document.getElementById("loading").style.display = "block";
+        const resultSection =
+            document.getElementById("resultSection");
 
-        setTimeout(function () {
 
-            document.getElementById("loading").style.display = "none";
+        /* ================= START LOADING ================= */
 
-            document.getElementById("resultSection").style.display = "block";
+        button.disabled = true;
+        button.style.opacity = "0.7";
+        button.style.cursor = "not-allowed";
+
+        loading.style.display = "block";
+
+        resultSection.style.display = "none";
+
+
+        try {
+
+            /* ================= BACKEND REQUEST ================= */
+
+            const response = await fetch(
+                "/api/logistics/analyze",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(data)
+                }
+            );
+
+
+            /* ================= READ RESPONSE ================= */
+
+            const result = await response.json();
+
+
+            if (!result.success) {
+
+                throw new Error(
+                    result.error ||
+                    "SmartPack AI could not analyze the logistics requirements."
+                );
+
+            }
+
+
+            const logistics =
+                result.logistics || {};
+
+
+            /* ================= DISPLAY RESULT ================= */
 
             document.getElementById("resultTemperature").textContent =
-                "Waiting for SmartPack AI";
+                logistics.recommended_temperature ||
+                "Not determined";
 
             document.getElementById("resultHumidity").textContent =
-                "Waiting for SmartPack AI";
+                logistics.humidity_requirement ||
+                "Not determined";
 
             document.getElementById("resultLight").textContent =
-                "Waiting for SmartPack AI";
+                logistics.light_protection ||
+                "Not determined";
 
             document.getElementById("resultColdChain").textContent =
-                "Waiting for SmartPack AI";
+                logistics.cold_chain ||
+                "Not determined";
 
             document.getElementById("resultTransport").textContent =
-                "Waiting for SmartPack AI";
+                logistics.transport_recommendation ||
+                "Not determined";
 
             document.getElementById("resultRisk").textContent =
-                "Waiting for SmartPack AI";
+                logistics.risk_level ||
+                "UNABLE TO DETERMINE";
 
             document.getElementById("resultHandling").textContent =
-                "Backend connection will be added next.";
+                logistics.handling_instructions ||
+                "No specific handling instruction returned.";
 
-            document.getElementById("resultRisks").textContent =
-                "Backend connection will be added next.";
+            const risks =
+                logistics.main_logistics_risks;
+
+            if (Array.isArray(risks)) {
+
+                document.getElementById("resultRisks").textContent =
+                    risks.length > 0
+                        ? risks.join(" • ")
+                        : "No specific risks identified.";
+
+            } else {
+
+                document.getElementById("resultRisks").textContent =
+                    risks ||
+                    "No specific risks identified.";
+            }
+
 
             document.getElementById("resultExplanation").textContent =
-                "SmartPack AI connection will be added in the next step.";
+                logistics.explanation ||
+                "No additional explanation was returned.";
 
-        }, 600);
+
+            resultSection.style.display = "block";
+
+            resultSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Smart Logistics error:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Something went wrong while analyzing logistics."
+            );
+
+
+        } finally {
+
+            /* ================= STOP LOADING ================= */
+
+            loading.style.display = "none";
+
+            button.disabled = false;
+            button.style.opacity = "1";
+            button.style.cursor = "pointer";
+
+        }
 
     }
-
 </script>
 
 </body>
