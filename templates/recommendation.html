@@ -1,1650 +1,858 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Packaging Recommendation | SmartPack AI
-    </title>
-
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-
-        body {
-
-            font-family: Arial, sans-serif;
-
-            background: #f4f7fb;
-
-            color: #1e293b;
-
-            line-height: 1.5;
-        }
-
-
-        /* ================= HEADER ================= */
-
-        header {
-
-            background: #0b1f3a;
-
-            color: white;
-
-            padding: 18px 7%;
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            flex-wrap: wrap;
-
-            gap: 15px;
-        }
-
-
-        .logo {
-
-            font-size: 23px;
-
-            font-weight: bold;
-        }
-
-
-        nav {
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            gap: 16px;
-        }
-
-
-        nav a {
-
-            color: white;
-
-            text-decoration: none;
-
-            font-size: 14px;
-        }
-
-
-        nav a:hover {
-
-            color: #38bdf8;
-        }
-
-
-        /* ================= CONTAINER ================= */
-
-        .container {
-
-            width: 90%;
-
-            max-width: 1100px;
-
-            margin: 35px auto;
-        }
-
-
-        .page-title {
-
-            text-align: center;
-
-            margin-bottom: 30px;
-        }
-
-
-        .page-title h1 {
-
-            color: #0b1f3a;
-
-            font-size: 32px;
-
-            margin-bottom: 8px;
-        }
-
-
-        .page-title p {
-
-            color: #64748b;
-        }
-
-
-        /* ================= CARD ================= */
-
-        .card {
-
-            background: white;
-
-            padding: 28px;
-
-            border-radius: 15px;
-
-            box-shadow:
-                0 8px 25px
-                rgba(0, 0, 0, 0.08);
-
-            margin-bottom: 25px;
-        }
-
-
-        .card h2 {
-
-            color: #0b1f3a;
-
-            margin-bottom: 20px;
-        }
-
-
-        .section-title {
-
-            margin-top: 25px;
-
-            margin-bottom: 15px;
-
-            padding-bottom: 8px;
-
-            border-bottom:
-                2px solid #e2e8f0;
-
-            color: #164e63;
-        }
-
-
-        /* ================= FORM ================= */
-
-        .form-grid {
-
-            display: grid;
-
-            grid-template-columns:
-                repeat(2, 1fr);
-
-            gap: 18px;
-        }
-
-
-        .form-group {
-
-            display: flex;
-
-            flex-direction: column;
-        }
-
-
-        .form-group.full {
-
-            grid-column: 1 / -1;
-        }
-
-
-        label {
-
-            font-weight: bold;
-
-            margin-bottom: 7px;
-
-            color: #334155;
-        }
-
-
-        input,
-        select {
-
-            width: 100%;
-
-            padding: 12px;
-
-            border:
-                1px solid #cbd5e1;
-
-            border-radius: 8px;
-
-            font-size: 14px;
-
-            background: white;
-        }
-
-
-        input:focus,
-        select:focus {
-
-            outline: none;
-
-            border-color: #0284c7;
-
-            box-shadow:
-                0 0 0 2px
-                rgba(2, 132, 199, 0.12);
-        }
-
-
-        .hint {
-
-            font-size: 12px;
-
-            color: #64748b;
-
-            margin-top: 5px;
-        }
-
-
-        /* ================= BUTTON ================= */
-
-        .button-container {
-
-            text-align: center;
-
-            margin-top: 25px;
-        }
-
-
-        button {
-
-            background: #0284c7;
-
-            color: white;
-
-            border: none;
-
-            padding: 13px 30px;
-
-            border-radius: 8px;
-
-            font-size: 16px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-        }
-
-
-        button:hover {
-
-            background: #0369a1;
-        }
-
-
-        button:disabled {
-
-            background: #94a3b8;
-
-            cursor: not-allowed;
-        }
-
-
-        /* ================= AI WAITING PANEL ================= */
-
-        #aiWaitingPanel {
-
-            display: none;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #eff6ff,
-                    #f0fdfa
-                );
-
-            border:
-                1px solid #bae6fd;
-
-            border-radius: 12px;
-
-            padding: 22px;
-
-            margin-top: 20px;
-
-            text-align: center;
-        }
-
-
-        .ai-title {
-
-            color: #075985;
-
-            font-size: 19px;
-
-            font-weight: bold;
-
-            margin-bottom: 8px;
-        }
-
-
-        .ai-description {
-
-            color: #475569;
-
-            font-size: 14px;
-
-            margin-bottom: 18px;
-        }
-
-
-        .timer {
-
-            font-size: 27px;
-
-            font-weight: bold;
-
-            color: #0284c7;
-
-            margin-bottom: 15px;
-        }
-
-
-        .progress-container {
-
-            width: 100%;
-
-            height: 8px;
-
-            background: #dbeafe;
-
-            border-radius: 20px;
-
-            overflow: hidden;
-
-            margin-bottom: 20px;
-        }
-
-
-        .progress-bar {
-
-            height: 100%;
-
-            width: 0%;
-
-            background: #0284c7;
-
-            transition:
-                width 1s linear;
-        }
-
-
-        .waiting-buttons {
-
-            display: flex;
-
-            justify-content: center;
-
-            gap: 12px;
-
-            flex-wrap: wrap;
-        }
-
-
-        .now-button {
-
-            background: #16a34a;
-        }
-
-
-        .now-button:hover {
-
-            background: #15803d;
-        }
-
-
-        .wait-button {
-
-            background: #0284c7;
-        }
-
-
-        .wait-button:hover {
-
-            background: #0369a1;
-        }
-
-
-        /* ================= STATUS ================= */
-
-        .status-message {
-
-            display: none;
-
-            padding: 12px;
-
-            border-radius: 7px;
-
-            margin-top: 15px;
-
-            font-size: 14px;
-        }
-
-
-        .status-info {
-
-            background: #eff6ff;
-
-            color: #075985;
-        }
-
-
-        .status-warning {
-
-            background: #fff7ed;
-
-            color: #9a3412;
-        }
-
-
-        /* ================= RESULT ================= */
-
-        #resultSection {
-
-            display: none;
-        }
-
-
-        .engine {
-
-            display: inline-block;
-
-            background: #e0f2fe;
-
-            color: #075985;
-
-            padding: 6px 12px;
-
-            border-radius: 20px;
-
-            font-size: 12px;
-
-            font-weight: bold;
-
-            margin-bottom: 18px;
-        }
-
-
-        .baseline-label {
-
-            display: none;
-
-            background: #fff7ed;
-
-            color: #9a3412;
-
-            padding: 9px 12px;
-
-            border-radius: 7px;
-
-            margin-bottom: 15px;
-
-            font-size: 13px;
-        }
-
-
-        .ai-result-label {
-
-            display: none;
-
-            background: #ecfdf5;
-
-            color: #166534;
-
-            padding: 9px 12px;
-
-            border-radius: 7px;
-
-            margin-bottom: 15px;
-
-            font-size: 13px;
-        }
-
-
-        .recommendation-box {
-
-            background: #f0fdf4;
-
-            border-left:
-                5px solid #16a34a;
-
-            padding: 18px;
-
-            border-radius: 8px;
-
-            margin-bottom: 20px;
-        }
-
-
-        .recommendation-box h3 {
-
-            color: #166534;
-
-            margin-bottom: 8px;
-        }
-
-
-        .material {
-
-            font-size: 20px;
-
-            font-weight: bold;
-
-            color: #0f766e;
-        }
-
-
-        /* ================= TABLE ================= */
-
-        .result-table {
-
-            width: 100%;
-
-            border-collapse: collapse;
-
-            margin-top: 12px;
-        }
-
-
-        .result-table th,
-        .result-table td {
-
-            border:
-                1px solid #dbe3ec;
-
-            padding: 11px;
-
-            text-align: left;
-
-            vertical-align: top;
-        }
-
-
-        .result-table th {
-
-            background: #eaf2f8;
-
-            color: #0b1f3a;
-
-            width: 25%;
-        }
-
-
-        .result-table td {
-
-            background: white;
-        }
-
-
-        .result-list {
-
-            margin: 0;
-
-            padding-left: 20px;
-        }
-
-
-        .result-list li {
-
-            margin-bottom: 5px;
-        }
-
-
-        /* ================= EVIDENCE ================= */
-
-        .evidence {
-
-            margin-top: 20px;
-        }
-
-
-        .evidence-item {
-
-            background: #f8fafc;
-
-            border:
-                1px solid #e2e8f0;
-
-            padding: 12px;
-
-            border-radius: 7px;
-
-            margin-bottom: 8px;
-        }
-
-
-        .source {
-
-            font-weight: bold;
-
-            color: #075985;
-        }
-
-
-        /* ================= NOTE ================= */
-
-        .note {
-
-            background: #fff7ed;
-
-            border-left:
-                4px solid #f97316;
-
-            padding: 13px;
-
-            margin-top: 18px;
-
-            border-radius: 6px;
-
-            font-size: 14px;
-        }
-
-
-        /* ================= ERROR ================= */
-
-        .error {
-
-            display: none;
-
-            background: #fef2f2;
-
-            border-left:
-                5px solid #dc2626;
-
-            color: #991b1b;
-
-            padding: 15px;
-
-            margin-top: 20px;
-
-            border-radius: 7px;
-        }
-
-
-        /* ================= RESPONSIVE ================= */
-
-        @media (max-width: 700px) {
-
-            header {
-
-                justify-content: center;
-
-                text-align: center;
-            }
-
-
-            nav {
-
-                justify-content: center;
-            }
-
-
-            .form-grid {
-
-                grid-template-columns: 1fr;
-            }
-
-
-            .form-group.full {
-
-                grid-column: auto;
-            }
-
-
-            .result-table {
-
-                font-size: 13px;
-            }
-
-
-            .result-table th {
-
-                width: 35%;
-            }
-
-        }
-
-    </style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Packaging Recommendation | SmartPack AI</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f7fb;
+    color:#1e293b;
+    line-height:1.5
+}
+
+header{
+    background:#0b1f3a;
+    color:#fff;
+    padding:18px 7%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:15px
+}
+
+.logo{font-size:23px;font-weight:bold}
+
+nav{display:flex;flex-wrap:wrap;gap:16px}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+nav a:hover{color:#38bdf8}
+
+.container{
+    width:90%;
+    max-width:1100px;
+    margin:35px auto
+}
+
+.page-title{text-align:center;margin-bottom:30px}
+.page-title h1{color:#0b1f3a;font-size:32px;margin-bottom:8px}
+.page-title p{color:#64748b}
+
+.card{
+    background:#fff;
+    padding:28px;
+    border-radius:15px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    margin-bottom:25px
+}
+
+.card h2{color:#0b1f3a;margin-bottom:20px}
+
+.section-title{
+    margin-top:25px;
+    margin-bottom:15px;
+    padding-bottom:8px;
+    border-bottom:2px solid #e2e8f0;
+    color:#164e63
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px
+}
+
+.form-group{display:flex;flex-direction:column}
+.form-group.full{grid-column:1/-1}
+
+label{
+    font-weight:bold;
+    margin-bottom:7px;
+    color:#334155
+}
+
+input,select{
+    width:100%;
+    padding:12px;
+    border:1px solid #cbd5e1;
+    border-radius:8px;
+    font-size:14px;
+    background:#fff
+}
+
+input:focus,select:focus{
+    outline:none;
+    border-color:#0284c7;
+    box-shadow:0 0 0 2px rgba(2,132,199,.12)
+}
+
+.hint{font-size:12px;color:#64748b;margin-top:5px}
+
+.button-container{text-align:center;margin-top:25px}
+
+button{
+    background:#0284c7;
+    color:#fff;
+    border:none;
+    padding:13px 30px;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer
+}
+
+button:hover{background:#0369a1}
+button:disabled{background:#94a3b8;cursor:not-allowed}
+
+#aiWaitingPanel{
+    display:none;
+    background:linear-gradient(135deg,#eff6ff,#f0fdfa);
+    border:1px solid #bae6fd;
+    border-radius:12px;
+    padding:20px;
+    margin-top:20px;
+    text-align:center
+}
+
+.ai-title{
+    color:#075985;
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:6px
+}
+
+.ai-description{
+    color:#475569;
+    font-size:14px;
+    margin-bottom:14px
+}
+
+.timer{
+    font-size:22px;
+    font-weight:bold;
+    color:#0284c7;
+    margin-bottom:12px
+}
+
+.progress-container{
+    width:100%;
+    height:8px;
+    background:#dbeafe;
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:16px
+}
+
+.progress-bar{
+    height:100%;
+    width:0%;
+    background:#0284c7;
+    transition:width 1s linear
+}
+
+.waiting-buttons{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap
+}
+
+.now-button{background:#16a34a}
+.now-button:hover{background:#15803d}
+.wait-button{background:#0284c7}
+
+.status-message{
+    display:none;
+    padding:12px;
+    border-radius:7px;
+    margin-top:15px;
+    font-size:14px
+}
+
+.status-info{background:#eff6ff;color:#075985}
+.status-warning{background:#fff7ed;color:#9a3412}
+
+#resultSection{display:none}
+
+.engine{
+    display:inline-block;
+    background:#e0f2fe;
+    color:#075985;
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+    margin-bottom:18px
+}
+
+/* =========================================================
+   RECOMMENDATION RESULT
+========================================================= */
+
+.analysis-card{
+    border:1px solid #dbe5ef;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:20px;
+    background:#fbfdff
+}
+
+.analysis-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:18px
+}
+
+.analysis-title{
+    color:#0b1f3a;
+    font-size:20px;
+    font-weight:bold
+}
+
+.analysis-badge{
+    background:#e0f2fe;
+    color:#075985;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold
+}
+
+.recommendation-box{
+    background:#f0fdf4;
+    border-left:5px solid #16a34a;
+    padding:18px;
+    border-radius:8px;
+    margin-bottom:18px
+}
+
+.recommendation-box h3{
+    color:#166534;
+    margin-bottom:7px
+}
+
+.material{
+    font-size:20px;
+    font-weight:bold;
+    color:#0f766e
+}
+
+.packaging-name{
+    font-weight:bold;
+    color:#0b1f3a;
+    margin-bottom:5px
+}
+
+.result-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px
+}
+
+.result-table th,.result-table td{
+    border:1px solid #dbe3ec;
+    padding:11px;
+    text-align:left;
+    vertical-align:top
+}
+
+.result-table th{
+    background:#eaf2f8;
+    color:#0b1f3a;
+    width:25%
+}
+
+.result-table td{background:#fff}
+
+.result-list{
+    margin:0;
+    padding-left:20px
+}
+
+.result-list li{margin-bottom:5px}
+
+.mini-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+    margin-top:18px
+}
+
+.mini-box{
+    background:#fff;
+    border:1px solid #e2e8f0;
+    border-radius:9px;
+    padding:14px
+}
+
+.mini-box h4{
+    color:#164e63;
+    margin-bottom:8px
+}
+
+.compact-note{
+    background:#f8fafc;
+    border-left:4px solid #64748b;
+    padding:12px;
+    border-radius:6px;
+    font-size:13px;
+    margin-top:15px
+}
+
+.evidence{margin-top:20px}
+
+.evidence-item{
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    padding:12px;
+    border-radius:7px;
+    margin-bottom:8px
+}
+
+.source{
+    font-weight:bold;
+    color:#075985
+}
+
+.evidence-item a{
+    color:#0369a1;
+    text-decoration:none
+}
+
+.evidence-item a:hover{text-decoration:underline}
+
+.note{
+    background:#fff7ed;
+    border-left:4px solid #f97316;
+    padding:13px;
+    margin-top:18px;
+    border-radius:6px;
+    font-size:14px
+}
+
+.error{
+    display:none;
+    background:#fef2f2;
+    border-left:5px solid #dc2626;
+    color:#991b1b;
+    padding:15px;
+    margin-top:20px;
+    border-radius:7px
+}
+
+/* AI is intentionally hidden until complete */
+#aiAnalysisCard{display:none}
+
+.ai-complete{
+    background:#ecfdf5;
+    border:1px solid #bbf7d0
+}
+
+.ai-complete .analysis-badge{
+    background:#dcfce7;
+    color:#166534
+}
+
+@media(max-width:700px){
+    header{justify-content:center;text-align:center}
+    nav{justify-content:center}
+    .form-grid{grid-template-columns:1fr}
+    .form-group.full{grid-column:auto}
+    .mini-grid{grid-template-columns:1fr}
+    .result-table{font-size:13px}
+    .result-table th{width:35%}
+}
+</style>
 </head>
-
 
 <body>
 
-
-<!-- ======================================================
-     HEADER
-======================================================= -->
-
 <header>
-
-    <div class="logo">
-        SmartPack AI
-    </div>
-
+    <div class="logo">SmartPack AI</div>
 
     <nav>
-
-        <a href="/">
-            Home
-        </a>
-
-        <a href="/recommendation">
-            Recommendation
-        </a>
-
-        <a href="/manufacturer">
-            Manufacturer
-        </a>
-
-        <a href="/inspector">
-            Inspector
-        </a>
-
-        <a href="/logistics">
-            Logistics
-        </a>
-
-        <a href="/freshness">
-            Freshness
-        </a>
-
-        <a href="/chatbot">
-            AI Assistant
-        </a>
-
+        <a href="/">Home</a>
+        <a href="/recommendation">Recommendation</a>
+        <a href="/manufacturer">Manufacturer</a>
+        <a href="/inspector">Inspector</a>
+        <a href="/logistics">Logistics</a>
+        <a href="/chatbot">AI Assistant</a>
     </nav>
-
 </header>
-
-
-
-<!-- ======================================================
-     MAIN
-======================================================= -->
 
 <main class="container">
 
+<div class="page-title">
+    <h1>Smart Packaging Recommendation</h1>
+    <p>
+        Get a quick database recommendation first.
+        SmartPack AI appears only after its analysis is fully completed.
+    </p>
+</div>
 
-    <div class="page-title">
+<!-- ========================================================
+     INPUT
+========================================================= -->
 
-        <h1>
-            Smart Packaging Recommendation
-        </h1>
+<div class="card">
 
-        <p>
-            Analyze your food product and get an
-            AI-assisted packaging recommendation.
-        </p>
+    <h2>Product Information</h2>
+
+    <div class="form-grid">
+
+        <div class="form-group full">
+            <label for="product">Product Name *</label>
+            <input id="product"
+                   type="text"
+                   placeholder="Example: Badam, Gathiya, Biscuits, Paneer">
+            <div class="hint">Enter any food product.</div>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Product Category *</label>
+            <select id="category">
+                <option value="">Select category</option>
+                <option value="snacks">Snacks / Namkeen / Chips / Gathiya / Khakhra</option>
+                <option value="dry fruits">Dry Fruits / Nuts</option>
+                <option value="fruit">Fresh Fruit</option>
+                <option value="vegetable">Fresh Vegetable</option>
+                <option value="spice">Spices</option>
+                <option value="biscuit">Biscuits / Bakery</option>
+                <option value="dairy">Dairy</option>
+                <option value="frozen">Frozen Food</option>
+                <option value="ready-to-eat">Ready-to-Eat / Cooked Food</option>
+                <option value="pickle">Pickle</option>
+                <option value="sauce">Sauce</option>
+                <option value="chutney">Chutney</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="pack_size">Pack Size</label>
+            <input id="pack_size" type="text" placeholder="Example: 500 g">
+        </div>
+
+        <div class="form-group">
+            <label for="old_material">Current / Old Packaging Material</label>
+            <input id="old_material" type="text" placeholder="Example: LDPE pouch">
+            <div class="hint">Used for meaningful old-vs-new comparison.</div>
+        </div>
+
+        <div class="form-group">
+            <label for="old_packaging_cost">Current Packaging Cost (₹)</label>
+            <input id="old_packaging_cost"
+                   type="number"
+                   min="0"
+                   step="0.01"
+                   placeholder="Example: 2.50">
+        </div>
+
+        <div class="form-group">
+            <label for="required_shelf_life">Required Shelf Life *</label>
+            <input id="required_shelf_life"
+                   type="text"
+                   placeholder="Example: 6 months">
+            <div class="hint">This is a target, not a guarantee.</div>
+        </div>
 
     </div>
 
+    <h3 class="section-title">Product Characteristics</h3>
 
+    <div class="form-grid">
 
-    <!-- ==================================================
-         INPUT CARD
-    =================================================== -->
-
-    <div class="card">
-
-        <h2>
-            Product Information
-        </h2>
-
-
-        <div class="form-grid">
-
-
-            <div class="form-group full">
-
-                <label for="product">
-                    Product Name *
-                </label>
-
-                <input
-                    type="text"
-                    id="product"
-                    placeholder="Example: Badam, Gathiya, Biscuits, Paneer"
-                >
-
-                <div class="hint">
-                    Enter any food product.
-                </div>
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="category">
-                    Product Category *
-                </label>
-
-                <select id="category">
-
-                    <option value="">
-                        Select category
-                    </option>
-
-                    <option value="snacks">
-                        Snacks / Namkeen / Chips / Gathiya / Khakhra
-                    </option>
-
-                    <option value="dry fruits">
-                        Dry Fruits / Nuts
-                    </option>
-
-                    <option value="fruit">
-                        Fresh Fruit
-                    </option>
-
-                    <option value="vegetable">
-                        Fresh Vegetable
-                    </option>
-
-                    <option value="spice">
-                        Spices
-                    </option>
-
-                    <option value="biscuit">
-                        Biscuits / Bakery
-                    </option>
-
-                    <option value="dairy">
-                        Dairy
-                    </option>
-
-                    <option value="frozen">
-                        Frozen Food
-                    </option>
-
-                    <option value="ready-to-eat">
-                        Ready-to-Eat / Cooked Food
-                    </option>
-
-                    <option value="pickle">
-                        Pickle / Sauce / Chutney
-                    </option>
-
-                    <option value="other">
-                        Other
-                    </option>
-
-                </select>
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="pack_size">
-                    Pack Size
-                </label>
-
-                <input
-                    type="text"
-                    id="pack_size"
-                    placeholder="Example: 500 g"
-                >
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="old_material">
-                    Current / Old Packaging Material
-                </label>
-
-                <input
-                    type="text"
-                    id="old_material"
-                    placeholder="Example: LDPE pouch"
-                >
-
-                <div class="hint">
-                    Used for meaningful old-vs-new comparison.
-                </div>
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="old_packaging_cost">
-                    Current Packaging Cost (₹)
-                </label>
-
-                <input
-                    type="number"
-                    id="old_packaging_cost"
-                    placeholder="Example: 2.50"
-                    min="0"
-                    step="0.01"
-                >
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="required_shelf_life">
-                    Required Shelf Life *
-                </label>
-
-                <input
-                    type="text"
-                    id="required_shelf_life"
-                    placeholder="Example: 6 months"
-                >
-
-                <div class="hint">
-                    This is a target, not a guaranteed shelf life.
-                </div>
-
-            </div>
-
+        <div class="form-group">
+            <label for="moisture">Moisture Sensitivity</label>
+            <select id="moisture">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
         </div>
 
-
-
-        <!-- ==================================================
-             CHARACTERISTICS
-        =================================================== -->
-
-        <h3 class="section-title">
-            Product Characteristics
-        </h3>
-
-
-        <div class="form-grid">
-
-
-            <div class="form-group">
-
-                <label for="moisture">
-                    Moisture Sensitivity
-                </label>
-
-                <select id="moisture">
-
-                    <option value="low">
-                        Low
-                    </option>
-
-                    <option value="medium" selected>
-                        Medium
-                    </option>
-
-                    <option value="high">
-                        High
-                    </option>
-
-                </select>
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="oxygen">
-                    Oxygen Sensitivity
-                </label>
-
-                <select id="oxygen">
-
-                    <option value="low">
-                        Low
-                    </option>
-
-                    <option value="medium" selected>
-                        Medium
-                    </option>
-
-                    <option value="high">
-                        High
-                    </option>
-
-                </select>
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="light">
-                    Light Sensitivity
-                </label>
-
-                <select id="light">
-
-                    <option value="low">
-                        Low
-                    </option>
-
-                    <option value="medium" selected>
-                        Medium
-                    </option>
-
-                    <option value="high">
-                        High
-                    </option>
-
-                </select>
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="perishability">
-                    Perishability
-                </label>
-
-                <select id="perishability">
-
-                    <option value="low">
-                        Low
-                    </option>
-
-                    <option value="medium" selected>
-                        Medium
-                    </option>
-
-                    <option value="high">
-                        High
-                    </option>
-
-                </select>
-
-            </div>
-
-
-
-            <div class="form-group">
-
-                <label for="respiration">
-                    Respiration Activity
-                </label>
-
-                <select id="respiration">
-
-                    <option value="low">
-                        Low
-                    </option>
-
-                    <option value="medium" selected>
-                        Medium
-                    </option>
-
-                    <option value="high">
-                        High
-                    </option>
-
-                </select>
-
-                <div class="hint">
-                    Mainly important for fresh fruits and vegetables.
-                </div>
-
-            </div>
-
+        <div class="form-group">
+            <label for="oxygen">Oxygen Sensitivity</label>
+            <select id="oxygen">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
         </div>
 
+        <div class="form-group">
+            <label for="light">Light Sensitivity</label>
+            <select id="light">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
+        </div>
 
+        <div class="form-group">
+            <label for="perishability">Perishability</label>
+            <select id="perishability">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
+        </div>
 
-        <!-- ==================================================
-             BUTTON
-        =================================================== -->
+        <div class="form-group">
+            <label for="respiration">Respiration Activity</label>
+            <select id="respiration">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
+            <div class="hint">Mainly important for fresh fruits and vegetables.</div>
+        </div>
 
-        <div class="button-container">
+    </div>
 
-            <button
-                id="recommendButton"
-                onclick="startRecommendation()"
-            >
-                Generate Recommendation
+    <div class="button-container">
+        <button id="recommendButton" onclick="startRecommendation()">
+            Generate Recommendation
+        </button>
+    </div>
+
+    <!-- AI WAITING -->
+    <div id="aiWaitingPanel">
+
+        <div class="ai-title">🤖 SmartPack AI is analyzing</div>
+
+        <div class="ai-description">
+            Your SmartPack Database Analysis is already available.
+            AI will appear automatically only when the complete analysis is ready.
+        </div>
+
+        <div id="timer" class="timer">0 / 40 sec</div>
+
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <div class="waiting-buttons">
+            <button class="now-button" onclick="showDatabaseNow(true)">
+                Continue with Database Analysis
             </button>
 
+            <button class="wait-button" onclick="keepWaiting()">
+                Keep Waiting for SmartPack AI
+            </button>
         </div>
-
-
-
-        <!-- ==================================================
-             AI WAITING PANEL
-        =================================================== -->
-
-        <div id="aiWaitingPanel">
-
-            <div class="ai-title">
-
-                🤖 SmartPack AI is analyzing...
-
-            </div>
-
-
-            <div class="ai-description">
-
-                SmartPack AI may provide a more detailed
-                recommendation based on your product information.
-
-            </div>
-
-
-            <div
-                id="timer"
-                class="timer"
-            >
-                0 / 40 sec
-            </div>
-
-
-            <div class="progress-container">
-
-                <div
-                    id="progressBar"
-                    class="progress-bar"
-                ></div>
-
-            </div>
-
-
-            <div class="waiting-buttons">
-
-                <button
-                    class="now-button"
-                    onclick="showBaselineNow()"
-                >
-                    Show Result Now
-                </button>
-
-
-                <button
-                    class="wait-button"
-                    onclick="keepWaiting()"
-                >
-                    Keep Waiting for SmartPack AI
-                </button>
-
-            </div>
-
-        </div>
-
-
-
-        <div
-            id="statusMessage"
-            class="status-message"
-        ></div>
-
-
-
-        <div
-            id="errorMessage"
-            class="error"
-        ></div>
 
     </div>
 
+    <div id="statusMessage" class="status-message"></div>
+    <div id="errorMessage" class="error"></div>
+
+</div>
 
 
-    <!-- ==================================================
-         RESULT
-    =================================================== -->
+<!-- ========================================================
+     RESULT
+========================================================= -->
 
-    <div
-        class="card"
-        id="resultSection"
-    >
+<div class="card" id="resultSection">
 
-        <h2>
-            Packaging Recommendation
-        </h2>
+    <h2>Packaging Recommendation</h2>
 
+    <!-- DATABASE ANALYSIS -->
+    <div class="analysis-card" id="databaseAnalysisCard">
 
-        <div
-            id="engineInfo"
-            class="engine"
-        ></div>
+        <div class="analysis-header">
+            <div class="analysis-title">
+                SmartPack Database Analysis
+            </div>
 
-
-        <div
-            id="baselineLabel"
-            class="baseline-label"
-        >
-            Showing the available baseline recommendation.
+            <div class="analysis-badge">
+                READY
+            </div>
         </div>
-
-
-        <div
-            id="aiResultLabel"
-            class="ai-result-label"
-        >
-            SmartPack AI analysis completed.
-        </div>
-
-
-
-        <!-- Main recommendation -->
 
         <div class="recommendation-box">
 
-            <h3>
-                Suggested Packaging
-            </h3>
+            <h3>Suggested Packaging</h3>
 
+            <div id="databasePackaging"
+                 class="packaging-name">
+            </div>
 
-            <div id="finalPackaging"></div>
-
-
-            <div
-                id="finalMaterial"
-                class="material"
-            ></div>
+            <div id="databaseMaterial"
+                 class="material">
+            </div>
 
         </div>
-
-
-
-        <!-- Result table -->
 
         <table class="result-table">
-
             <tbody>
 
+            <tr>
+                <th>Why Selected</th>
+                <td id="databaseWhy"></td>
+            </tr>
 
-                <tr>
+            <tr>
+                <th>Packaging Requirements</th>
+                <td id="databaseRequirements"></td>
+            </tr>
 
-                    <th>
-                        Why Selected
-                    </th>
+            <tr>
+                <th>Benefits</th>
+                <td id="databaseBenefits"></td>
+            </tr>
 
-                    <td id="whySelected"></td>
+            <tr>
+                <th>Shelf-Life Target</th>
+                <td id="databaseShelfLife"></td>
+            </tr>
 
-                </tr>
-
-
-                <tr>
-
-                    <th>
-                        Benefits
-                    </th>
-
-                    <td id="benefits"></td>
-
-                </tr>
-
-
-                <tr>
-
-                    <th>
-                        Shelf-Life Target
-                    </th>
-
-                    <td id="shelfLife"></td>
-
-                </tr>
-
-
-                <tr id="costRow">
-
-                    <th>
-                        Cost Comparison
-                    </th>
-
-                    <td id="costComparison"></td>
-
-                </tr>
-
-
-                <tr id="sustainableRow">
-
-                    <th>
-                        Sustainable Option
-                    </th>
-
-                    <td id="sustainableOption"></td>
-
-                </tr>
-
+            <tr id="databaseTradeoffRow">
+                <th>Trade-offs</th>
+                <td id="databaseTradeoffs"></td>
+            </tr>
 
             </tbody>
-
         </table>
 
+        <div class="mini-grid">
 
+            <div class="mini-box">
+                <h4>Rule Match</h4>
+                <div id="ruleMatch"></div>
+            </div>
 
-        <!-- Evidence -->
-
-        <div class="evidence">
-
-            <h3 class="section-title">
-                Evidence / Data Sources
-            </h3>
-
-
-            <div id="evidenceList"></div>
+            <div class="mini-box">
+                <h4>Assessment</h4>
+                <div id="ruleAssessment"></div>
+            </div>
 
         </div>
 
-
-
-        <!-- Validation -->
-
-        <div
-            id="validationNote"
-            class="note"
-        ></div>
-
+        <div class="compact-note">
+            <strong>Important:</strong>
+            The database result is a packaging guidance baseline.
+            It is not a food-safety approval or guaranteed shelf-life result.
+        </div>
 
     </div>
+
+
+    <!-- AI ANALYSIS: HIDDEN UNTIL COMPLETE -->
+    <div class="analysis-card ai-complete" id="aiAnalysisCard">
+
+        <div class="analysis-header">
+
+            <div class="analysis-title">
+                SmartPack AI Analysis
+            </div>
+
+            <div class="analysis-badge">
+                COMPLETED
+            </div>
+
+        </div>
+
+        <div class="recommendation-box">
+
+            <h3>AI-Assisted Packaging Recommendation</h3>
+
+            <div id="aiPackaging"
+                 class="packaging-name">
+            </div>
+
+            <div id="aiMaterial"
+                 class="material">
+            </div>
+
+        </div>
+
+        <table class="result-table">
+            <tbody>
+
+            <tr>
+                <th>Why Selected</th>
+                <td id="aiWhy"></td>
+            </tr>
+
+            <tr>
+                <th>Benefits</th>
+                <td id="aiBenefits"></td>
+            </tr>
+
+            <tr>
+                <th>Shelf-Life Target</th>
+                <td id="aiShelfLife"></td>
+            </tr>
+
+            <tr id="aiCostRow">
+                <th>Cost Comparison</th>
+                <td id="aiCost"></td>
+            </tr>
+
+            <tr id="aiSustainableRow">
+                <th>Sustainable Option</th>
+                <td id="aiSustainable"></td>
+            </tr>
+
+            </tbody>
+        </table>
+
+        <div class="compact-note">
+            SmartPack AI is an analysis layer over the shared SmartPack
+            Database Analysis. It does not replace the common database
+            decision silently.
+        </div>
+
+    </div>
+
+
+    <!-- EVIDENCE -->
+    <div class="evidence">
+
+        <h3 class="section-title">
+            Trusted Reference Sources
+        </h3>
+
+        <div id="evidenceList"></div>
+
+    </div>
+
+    <div id="validationNote" class="note"></div>
+
+</div>
 
 </main>
 
 
-
 <script>
-
-/* =========================================================
-   GLOBAL VARIABLES
-========================================================= */
-
 let currentJobId = null;
-
 let baselineRecommendation = null;
-
 let aiCompleted = false;
-
 let aiRecommendation = null;
-
 let timerInterval = null;
-
 let elapsedSeconds = 0;
 
 const MAX_WAIT_TIME = 40;
 
 
 /* =========================================================
-   START RECOMMENDATION
+   START
 ========================================================= */
 
-async function startRecommendation() {
+async function startRecommendation(){
 
-    const button =
-        document.getElementById(
-            "recommendButton"
-        );
-
-
-    const errorMessage =
-        document.getElementById(
-            "errorMessage"
-        );
-
-
-    const resultSection =
-        document.getElementById(
-            "resultSection"
-        );
-
+    const button = document.getElementById("recommendButton");
+    const errorMessage = document.getElementById("errorMessage");
+    const resultSection = document.getElementById("resultSection");
 
     errorMessage.style.display = "none";
-
     resultSection.style.display = "none";
 
-
-    const product =
-        document.getElementById(
-            "product"
-        ).value.trim();
-
-
-    const category =
-        document.getElementById(
-            "category"
-        ).value;
-
-
-    const moisture =
-        document.getElementById(
-            "moisture"
-        ).value;
-
-
-    const oxygen =
-        document.getElementById(
-            "oxygen"
-        ).value;
-
-
-    const light =
-        document.getElementById(
-            "light"
-        ).value;
-
-
-    const perishability =
-        document.getElementById(
-            "perishability"
-        ).value;
-
-
-    const respiration =
-        document.getElementById(
-            "respiration"
-        ).value;
-
-
-    const oldMaterial =
-        document.getElementById(
-            "old_material"
-        ).value.trim();
-
-
-    const packSize =
-        document.getElementById(
-            "pack_size"
-        ).value.trim();
-
-
-    const oldPackagingCost =
-        document.getElementById(
-            "old_packaging_cost"
-        ).value.trim();
-
-
-    const requiredShelfLife =
-        document.getElementById(
-            "required_shelf_life"
-        ).value.trim();
-
-
-    /* =====================================================
-       VALIDATION
-    ====================================================== */
-
-    if (!product) {
-
-        showError(
-            "Please enter the product name."
-        );
-
-        return;
-    }
-
-
-    if (!category) {
-
-        showError(
-            "Please select the product category."
-        );
-
-        return;
-    }
-
-
-    if (!requiredShelfLife) {
-
-        showError(
-            "Please enter the required shelf life."
-        );
-
-        return;
-    }
-
-
-    /* =====================================================
-       DATA
-    ====================================================== */
+    document.getElementById("aiAnalysisCard").style.display = "none";
+    document.getElementById("aiWaitingPanel").style.display = "none";
 
     const data = {
-
-        product: product,
-
-        category: category,
-
-        moisture: moisture,
-
-        oxygen: oxygen,
-
-        light: light,
-
-        perishability: perishability,
-
-        respiration: respiration,
-
-        old_material: oldMaterial,
-
-        pack_size: packSize,
-
+        product: document.getElementById("product").value.trim(),
+        category: document.getElementById("category").value,
+        moisture: document.getElementById("moisture").value,
+        oxygen: document.getElementById("oxygen").value,
+        light: document.getElementById("light").value,
+        perishability: document.getElementById("perishability").value,
+        respiration: document.getElementById("respiration").value,
+        old_material: document.getElementById("old_material").value.trim(),
+        pack_size: document.getElementById("pack_size").value.trim(),
         old_packaging_cost:
-            oldPackagingCost,
-
+            document.getElementById("old_packaging_cost").value.trim(),
         required_shelf_life:
-            requiredShelfLife
-
+            document.getElementById("required_shelf_life").value.trim()
     };
 
+    if(!data.product){
+        showError("Please enter the product name.");
+        return;
+    }
 
-    /* =====================================================
-       BUTTON STATE
-    ====================================================== */
+    if(!data.category){
+        showError("Please select the product category.");
+        return;
+    }
+
+    if(!data.required_shelf_life){
+        showError("Please enter the required shelf life.");
+        return;
+    }
 
     button.disabled = true;
+    button.innerText = "Preparing Database Analysis...";
 
-    button.innerText =
-        "Starting SmartPack AI...";
+    try{
 
+        const response = await fetch(
+            "/api/recommend/start",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify(data)
+            }
+        );
 
-    try {
+        const result = await response.json();
 
-        const response =
-            await fetch(
-                "/api/recommend/start",
-                {
-
-                    method: "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body:
-                        JSON.stringify(data)
-
-                }
-            );
-
-
-        const result =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !result.success
-        ) {
-
+        if(!response.ok || !result.success){
             throw new Error(
                 result.error ||
                 "Unable to start recommendation."
             );
-
         }
 
-
-        /* =================================================
-           SAVE JOB
-        ================================================= */
-
-        currentJobId =
-            result.job_id;
-
-
-        baselineRecommendation =
-            result.baseline;
-
+        currentJobId = result.job_id;
+        baselineRecommendation = result.baseline;
 
         aiCompleted = false;
-
         aiRecommendation = null;
-
         elapsedSeconds = 0;
 
-
-        /* =================================================
-           SHOW WAITING PANEL
-        ================================================= */
+        /*
+         * DATABASE RESULT IS SHOWN IMMEDIATELY.
+         * AI IS NOT SHOWN UNTIL STATUS == completed.
+         */
+        displayDatabaseRecommendation(
+            baselineRecommendation
+        );
 
         document.getElementById(
             "aiWaitingPanel"
         ).style.display = "block";
 
-
-        document.getElementById(
-            "timer"
-        ).innerText =
-            "0 / 40 sec";
-
+        document.getElementById("timer").innerText =
+            "0 / " + MAX_WAIT_TIME + " sec";
 
         document.getElementById(
             "progressBar"
-        ).style.width =
-            "0%";
+        ).style.width = "0%";
 
+        button.innerText = "Database Analysis Ready";
 
-        button.innerText =
-            "SmartPack AI Analyzing...";
-
+        showStatus(
+            "SmartPack Database Analysis is ready. SmartPack AI is working separately and will appear only when its complete result is ready.",
+            "info"
+        );
 
         startTimer();
-
         pollAIResult();
 
-
-    } catch (error) {
+    }catch(error){
 
         console.error(error);
 
@@ -1653,14 +861,9 @@ async function startRecommendation() {
             "Something went wrong."
         );
 
-
         button.disabled = false;
-
-        button.innerText =
-            "Generate Recommendation";
-
+        button.innerText = "Generate Recommendation";
     }
-
 }
 
 
@@ -1668,764 +871,580 @@ async function startRecommendation() {
    TIMER
 ========================================================= */
 
-function startTimer() {
+function startTimer(){
 
     stopTimer();
 
+    timerInterval = setInterval(function(){
 
-    timerInterval =
-        setInterval(
-            function() {
+        elapsedSeconds++;
 
-                elapsedSeconds++;
+        document.getElementById("timer").innerText =
+            elapsedSeconds +
+            " / " +
+            MAX_WAIT_TIME +
+            " sec";
 
+        const percentage =
+            (elapsedSeconds / MAX_WAIT_TIME) * 100;
 
-                const timer =
-                    document.getElementById(
-                        "timer"
-                    );
+        document.getElementById(
+            "progressBar"
+        ).style.width =
+            Math.min(percentage,100) + "%";
 
-
-                const progress =
-                    document.getElementById(
-                        "progressBar"
-                    );
-
-
-                timer.innerText =
-                    elapsedSeconds +
-                    " / " +
-                    MAX_WAIT_TIME +
-                    " sec";
-
-
-                const percentage =
-                    (
-                        elapsedSeconds /
-                        MAX_WAIT_TIME
-                    ) * 100;
-
-
-                progress.style.width =
-                    Math.min(
-                        percentage,
-                        100
-                    ) + "%";
-
-
-                /* =========================================
-                   40 SECOND FALLBACK
-                ========================================== */
-
-                if (
-                    elapsedSeconds >=
-                    MAX_WAIT_TIME
-                ) {
-
-                    stopTimer();
-
-
-                    if (!aiCompleted) {
-
-                        showBaselineNow(
-                            true
-                        );
-
-                    }
-
-                }
-
-            },
-            1000
-        );
-
-}
-
-
-/* =========================================================
-   STOP TIMER
-========================================================= */
-
-function stopTimer() {
-
-    if (timerInterval) {
-
-        clearInterval(
-            timerInterval
-        );
-
-        timerInterval = null;
-
-    }
-
-}
-
-
-/* =========================================================
-   POLL AI RESULT
-========================================================= */
-
-async function pollAIResult() {
-
-    if (!currentJobId) {
-
-        return;
-
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/recommend/status/" +
-                currentJobId
-            );
-
-
-        const result =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            return;
-
-        }
-
-
-        /* ================================================
-           AI COMPLETED
-        ================================================= */
-
-        if (
-            result.status ===
-            "completed"
-        ) {
-
-            aiCompleted = true;
-
-            aiRecommendation =
-                result.recommendation;
-
+        if(elapsedSeconds >= MAX_WAIT_TIME){
 
             stopTimer();
 
+            if(!aiCompleted){
+
+                hideWaitingPanel();
+
+                showStatus(
+                    "Database Analysis remains available. SmartPack AI is still running in the background.",
+                    "warning"
+                );
+            }
+        }
+
+    },1000);
+}
+
+
+function stopTimer(){
+
+    if(timerInterval){
+
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+}
+
+
+/* =========================================================
+   POLL AI
+========================================================= */
+
+async function pollAIResult(){
+
+    if(!currentJobId) return;
+
+    try{
+
+        const response = await fetch(
+            "/api/recommend/status/" +
+            currentJobId
+        );
+
+        const result = await response.json();
+
+        if(!response.ok){
+            setTimeout(pollAIResult,2000);
+            return;
+        }
+
+        if(result.status === "completed"){
+
+            aiCompleted = true;
+            aiRecommendation = result.recommendation;
+
+            stopTimer();
 
             /*
-             * If user has not already selected
-             * baseline, show AI automatically.
+             * THIS IS THE ONLY PLACE WHERE AI RESULT
+             * BECOMES VISIBLE.
              */
-
-            displayRecommendation(
-                aiRecommendation,
-                "ai"
+            displayAIRecommendation(
+                aiRecommendation
             );
-
 
             hideWaitingPanel();
 
-
-            return;
-
-        }
-
-
-        /* ================================================
-           AI FAILED
-        ================================================= */
-
-        if (
-            result.status ===
-            "failed"
-        ) {
-
-            stopTimer();
-
-
-            showBaselineNow(
-                false
+            showStatus(
+                "SmartPack AI Analysis is complete and ready to view.",
+                "info"
             );
 
+            return;
+        }
+
+        if(result.status === "failed"){
+
+            stopTimer();
+            hideWaitingPanel();
 
             showStatus(
-                "SmartPack AI could not complete the analysis. Showing the available baseline recommendation.",
+                "SmartPack AI could not complete the analysis. The SmartPack Database Analysis remains available.",
                 "warning"
             );
 
-
             return;
-
         }
-
-
-        /* ================================================
-           STILL RUNNING
-        ================================================= */
 
         setTimeout(
             pollAIResult,
             1000
         );
 
-
-    } catch (error) {
+    }catch(error){
 
         console.error(
-            "Polling error:",
+            "AI polling error:",
             error
         );
-
 
         setTimeout(
             pollAIResult,
             2000
         );
-
     }
-
 }
 
 
 /* =========================================================
-   SHOW BASELINE NOW
+   DATABASE RESULT
 ========================================================= */
 
-function showBaselineNow(
-    automatic = false
-) {
+function displayDatabaseRecommendation(recommendation){
 
-    if (!baselineRecommendation) {
-
-        return;
-
-    }
-
-
-    stopTimer();
-
-
-    displayRecommendation(
-        baselineRecommendation,
-        "baseline"
-    );
-
-
-    hideWaitingPanel();
-
-
-    if (automatic) {
-
-        showStatus(
-
-            "SmartPack AI is taking longer than expected. Showing the available baseline recommendation so you can continue.",
-
-            "warning"
-
-        );
-
-    } else {
-
-        showStatus(
-
-            "Showing the baseline recommendation. SmartPack AI may still finish its analysis in the background.",
-
-            "info"
-
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   KEEP WAITING
-========================================================= */
-
-function keepWaiting() {
-
-    if (aiCompleted) {
-
-        displayRecommendation(
-            aiRecommendation,
-            "ai"
-        );
-
-        hideWaitingPanel();
-
-        return;
-
-    }
-
-
-    showStatus(
-
-        "SmartPack AI is still analyzing. You can continue waiting for the AI-enhanced result.",
-
-        "info"
-
-    );
-
-}
-
-
-/* =========================================================
-   HIDE WAITING PANEL
-========================================================= */
-
-function hideWaitingPanel() {
-
-    document.getElementById(
-        "aiWaitingPanel"
-    ).style.display = "none";
-
-}
-
-
-/* =========================================================
-   DISPLAY RECOMMENDATION
-========================================================= */
-
-function displayRecommendation(
-    recommendation,
-    type
-) {
-
-    if (!recommendation) {
-
-        return;
-
-    }
-
+    if(!recommendation) return;
 
     document.getElementById(
         "resultSection"
     ).style.display = "block";
 
-
-    const engineInfo =
-        document.getElementById(
-            "engineInfo"
-        );
-
-
-    const baselineLabel =
-        document.getElementById(
-            "baselineLabel"
-        );
-
-
-    const aiResultLabel =
-        document.getElementById(
-            "aiResultLabel"
-        );
-
-
-    if (type === "ai") {
-
-        engineInfo.innerText =
-            "Engine: Rule Engine + SmartPack AI";
-
-
-        baselineLabel.style.display =
-            "none";
-
-
-        aiResultLabel.style.display =
-            "block";
-
-    } else {
-
-        engineInfo.innerText =
-            "Engine: Rule Engine";
-
-
-        baselineLabel.style.display =
-            "block";
-
-
-        aiResultLabel.style.display =
-            "none";
-
-    }
-
-
-    /* =====================================================
-       MAIN RECOMMENDATION
-    ====================================================== */
+    document.getElementById(
+        "databaseAnalysisCard"
+    ).style.display = "block";
 
     document.getElementById(
-        "finalPackaging"
+        "databasePackaging"
     ).innerHTML =
-
-        "<strong>" +
-
         escapeHtml(
             recommendation.final_packaging ||
             "Not specified"
-        ) +
-
-        "</strong>";
-
+        );
 
     document.getElementById(
-        "finalMaterial"
+        "databaseMaterial"
     ).innerHTML =
-
-        "<strong>Suggested Material: " +
-
+        "Suggested Material: " +
         escapeHtml(
             recommendation.final_material ||
             "Not specified"
-        ) +
-
-        "</strong>";
-
-
-    /* =====================================================
-       WHY SELECTED
-    ====================================================== */
+        );
 
     document.getElementById(
-        "whySelected"
+        "databaseWhy"
     ).innerHTML =
-
         createList(
             recommendation.why_selected
         );
 
-
-    /* =====================================================
-       BENEFITS
-    ====================================================== */
+    document.getElementById(
+        "databaseRequirements"
+    ).innerHTML =
+        createList(
+            recommendation.packaging_requirements
+        );
 
     document.getElementById(
-        "benefits"
+        "databaseBenefits"
     ).innerHTML =
-
         createList(
             recommendation.benefits
         );
 
-
-    /* =====================================================
-       SHELF LIFE
-    ====================================================== */
-
-    const shelfLife =
-        recommendation.shelf_life ||
-        {};
-
+    const shelf = recommendation.shelf_life || {};
 
     document.getElementById(
-        "shelfLife"
+        "databaseShelfLife"
     ).innerHTML =
-
         "<strong>Target:</strong> " +
-
         escapeHtml(
-            shelfLife.user_target ||
-            "Not specified"
+            shelf.user_target || "Not specified"
         ) +
-
         "<br><br>" +
-
         "<strong>Assessment:</strong> " +
-
         escapeHtml(
-            shelfLife.assessment ||
+            shelf.assessment ||
             "Requires shelf-life validation."
         );
 
+    const tradeoffs =
+        recommendation.tradeoffs || [];
 
-    /* =====================================================
-       COST
-    ====================================================== */
-
-    const cost =
-        recommendation.cost_comparison ||
-        {};
-
-
-    const costRow =
-        document.getElementById(
-            "costRow"
-        );
-
-
-    if (cost.show === true) {
-
-        costRow.style.display =
-            "table-row";
-
+    if(tradeoffs.length){
 
         document.getElementById(
-            "costComparison"
+            "databaseTradeoffs"
         ).innerHTML =
-
-            "<strong>Old Material:</strong> " +
-
-            escapeHtml(
-                cost.old_material ||
-                "Not specified"
-            ) +
-
-            "<br>" +
-
-            "<strong>Old Cost:</strong> ₹" +
-
-            escapeHtml(
-                cost.old_cost ||
-                "Not available"
-            ) +
-
-            "<br><br>" +
-
-            "<strong>New Material:</strong> " +
-
-            escapeHtml(
-                cost.new_material ||
-                "Not specified"
-            ) +
-
-            "<br>" +
-
-            "<strong>New Cost:</strong> ₹" +
-
-            escapeHtml(
-                cost.new_cost ||
-                "Not available"
-            ) +
-
-            "<br><br>" +
-
-            "<strong>Cost Difference:</strong> " +
-
-            escapeHtml(
-                cost.difference ||
-                "Not available"
-            );
-
-    } else {
-
-        costRow.style.display =
-            "none";
-
-    }
-
-
-    /* =====================================================
-       SUSTAINABILITY
-    ====================================================== */
-
-    const sustainable =
-        recommendation.sustainable_option ||
-        {};
-
-
-    const sustainableRow =
-        document.getElementById(
-            "sustainableRow"
-        );
-
-
-    if (
-        sustainable.show === true
-    ) {
-
-        sustainableRow.style.display =
-            "table-row";
-
+            createList(tradeoffs);
 
         document.getElementById(
-            "sustainableOption"
-        ).innerHTML =
+            "databaseTradeoffRow"
+        ).style.display = "table-row";
 
-            "<strong>Material:</strong> " +
+    }else{
 
-            escapeHtml(
-                sustainable.material ||
-                "Not specified"
-            ) +
-
-            "<br><br>" +
-
-            "<strong>Benefit:</strong> " +
-
-            escapeHtml(
-                sustainable.benefit ||
-                "Not specified"
-            ) +
-
-            "<br><br>" +
-
-            "<strong>Trade-off:</strong> " +
-
-            escapeHtml(
-                sustainable.tradeoff ||
-                "Not specified"
-            );
-
-    } else {
-
-        sustainableRow.style.display =
-            "none";
-
-    }
-
-
-    /* =====================================================
-       EVIDENCE
-    ====================================================== */
-
-    const evidence =
-        recommendation.evidence ||
-        [];
-
-
-    const evidenceContainer =
         document.getElementById(
-            "evidenceList"
-        );
-
-
-    evidenceContainer.innerHTML =
-        "";
-
-
-    if (evidence.length === 0) {
-
-        evidenceContainer.innerHTML =
-
-            "<div class='evidence-item'>" +
-
-            "No evidence information available." +
-
-            "</div>";
-
-    } else {
-
-        evidence.forEach(
-            function(item) {
-
-                const div =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                div.className =
-                    "evidence-item";
-
-
-                div.innerHTML =
-
-                    "<span class='source'>" +
-
-                    escapeHtml(
-                        item.source ||
-                        "Source"
-                    ) +
-
-                    "</span>" +
-
-                    " — " +
-
-                    escapeHtml(
-                        item.reason_used ||
-                        ""
-                    );
-
-
-                evidenceContainer.appendChild(
-                    div
-                );
-
-            }
-        );
-
+            "databaseTradeoffRow"
+        ).style.display = "none";
     }
 
+    const rule =
+        recommendation.rule_engine || {};
 
-    /* =====================================================
-       VALIDATION NOTE
-    ====================================================== */
+    document.getElementById(
+        "ruleMatch"
+    ).innerHTML =
+        escapeHtml(
+            rule.match_type ||
+            "Category rule"
+        ) +
+        "<br><strong>Score:</strong> " +
+        escapeHtml(
+            rule.score == null
+                ? "—"
+                : rule.score
+        );
+
+    document.getElementById(
+        "ruleAssessment"
+    ).innerHTML =
+        escapeHtml(
+            rule.assessment ||
+            "Rule-based assessment."
+        );
+
+    renderEvidence(
+        recommendation.evidence || []
+    );
 
     document.getElementById(
         "validationNote"
     ).innerHTML =
-
         "<strong>Validation:</strong> " +
-
         escapeHtml(
-
             recommendation.validation_note ||
-
             "Final commercial packaging selection requires appropriate material compatibility and shelf-life validation."
-
         );
-
-
-    /* =====================================================
-       SCROLL
-    ====================================================== */
 
     document.getElementById(
         "resultSection"
     ).scrollIntoView({
-
-        behavior: "smooth"
-
+        behavior:"smooth"
     });
-
 }
 
 
 /* =========================================================
-   CREATE LIST
+   AI RESULT
 ========================================================= */
 
-function createList(
-    items
-) {
+function displayAIRecommendation(recommendation){
 
-    if (
-        !items ||
-        items.length === 0
-    ) {
+    if(!recommendation) return;
 
-        return "Not specified.";
+    const card =
+        document.getElementById(
+            "aiAnalysisCard"
+        );
 
+    /*
+     * Hidden until this function is called.
+     * This function is called only after status=completed.
+     */
+    card.style.display = "block";
+
+    document.getElementById(
+        "aiPackaging"
+    ).innerHTML =
+        escapeHtml(
+            recommendation.final_packaging ||
+            baselineRecommendation?.final_packaging ||
+            "Not specified"
+        );
+
+    document.getElementById(
+        "aiMaterial"
+    ).innerHTML =
+        "Suggested Material: " +
+        escapeHtml(
+            recommendation.final_material ||
+            baselineRecommendation?.final_material ||
+            "Not specified"
+        );
+
+    document.getElementById(
+        "aiWhy"
+    ).innerHTML =
+        createList(
+            recommendation.why_selected
+        );
+
+    document.getElementById(
+        "aiBenefits"
+    ).innerHTML =
+        createList(
+            recommendation.benefits
+        );
+
+    const shelf =
+        recommendation.shelf_life || {};
+
+    document.getElementById(
+        "aiShelfLife"
+    ).innerHTML =
+        "<strong>Target:</strong> " +
+        escapeHtml(
+            shelf.user_target ||
+            "Not specified"
+        ) +
+        "<br><br>" +
+        "<strong>Assessment:</strong> " +
+        escapeHtml(
+            shelf.assessment ||
+            "Requires shelf-life validation."
+        );
+
+    const cost =
+        recommendation.cost_comparison || {};
+
+    if(cost.show === true){
+
+        document.getElementById(
+            "aiCostRow"
+        ).style.display = "table-row";
+
+        document.getElementById(
+            "aiCost"
+        ).innerHTML =
+            "<strong>Old Material:</strong> " +
+            escapeHtml(cost.old_material || "Not specified") +
+            "<br><strong>Old Cost:</strong> ₹" +
+            escapeHtml(cost.old_cost || "Not available") +
+            "<br><br><strong>New Material:</strong> " +
+            escapeHtml(cost.new_material || "Not specified") +
+            "<br><strong>New Cost:</strong> ₹" +
+            escapeHtml(cost.new_cost || "Not available") +
+            "<br><br><strong>Difference:</strong> " +
+            escapeHtml(cost.difference || "Not available");
+
+    }else{
+
+        document.getElementById(
+            "aiCostRow"
+        ).style.display = "none";
     }
 
+    const sustainable =
+        recommendation.sustainable_option || {};
+
+    if(sustainable.show === true){
+
+        document.getElementById(
+            "aiSustainableRow"
+        ).style.display = "table-row";
+
+        document.getElementById(
+            "aiSustainable"
+        ).innerHTML =
+            "<strong>Material:</strong> " +
+            escapeHtml(sustainable.material || "Not specified") +
+            "<br><br><strong>Benefit:</strong> " +
+            escapeHtml(sustainable.benefit || "Not specified") +
+            "<br><br><strong>Trade-off:</strong> " +
+            escapeHtml(sustainable.tradeoff || "Not specified");
+
+    }else{
+
+        document.getElementById(
+            "aiSustainableRow"
+        ).style.display = "none";
+    }
+
+    /*
+     * Update evidence if AI has a more complete evidence set.
+     * The AI is not allowed to invent source verification.
+     */
+    if(
+        Array.isArray(recommendation.evidence) &&
+        recommendation.evidence.length
+    ){
+        renderEvidence(
+            recommendation.evidence
+        );
+    }
+
+    if(recommendation.validation_note){
+
+        document.getElementById(
+            "validationNote"
+        ).innerHTML =
+            "<strong>Validation:</strong> " +
+            escapeHtml(
+                recommendation.validation_note
+            );
+    }
+
+    card.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+    });
+}
+
+
+/* =========================================================
+   SHOW DATABASE ONLY
+========================================================= */
+
+function showDatabaseNow(automatic=false){
+
+    hideWaitingPanel();
+
+    if(automatic){
+
+        showStatus(
+            "Showing the SmartPack Database Analysis. SmartPack AI can continue running in the background.",
+            "warning"
+        );
+
+    }else{
+
+        showStatus(
+            "SmartPack Database Analysis is available now.",
+            "info"
+        );
+    }
+}
+
+
+function keepWaiting(){
+
+    if(aiCompleted){
+
+        displayAIRecommendation(
+            aiRecommendation
+        );
+
+        hideWaitingPanel();
+
+        return;
+    }
+
+    showStatus(
+        "SmartPack AI is still analyzing. The Database Analysis is already available above.",
+        "info"
+    );
+}
+
+
+function hideWaitingPanel(){
+
+    document.getElementById(
+        "aiWaitingPanel"
+    ).style.display = "none";
+}
+
+
+/* =========================================================
+   EVIDENCE
+========================================================= */
+
+function renderEvidence(evidence){
+
+    const container =
+        document.getElementById(
+            "evidenceList"
+        );
+
+    container.innerHTML = "";
+
+    if(!evidence || !evidence.length){
+
+        container.innerHTML =
+            "<div class='evidence-item'>" +
+            "No external reference information is available." +
+            "</div>";
+
+        return;
+    }
+
+    evidence.forEach(function(item){
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "evidence-item";
+
+        const source =
+            escapeHtml(
+                item.source || "Reference source"
+            );
+
+        const title =
+            escapeHtml(
+                item.title || ""
+            );
+
+        const reason =
+            escapeHtml(
+                item.reason_used || ""
+            );
+
+        let link = "";
+
+        if(item.url){
+
+            link =
+                " <a href='" +
+                escapeAttribute(item.url) +
+                "' target='_blank' rel='noopener noreferrer'>" +
+                "Open source" +
+                "</a>";
+        }
+
+        div.innerHTML =
+            "<span class='source'>" +
+            source +
+            "</span>" +
+            (title ? " — " + title : "") +
+            "<br>" +
+            reason +
+            link;
+
+        container.appendChild(div);
+    });
+}
+
+
+/* =========================================================
+   LIST
+========================================================= */
+
+function createList(items){
+
+    if(!Array.isArray(items) || !items.length){
+        return "Not specified.";
+    }
 
     let html =
         "<ul class='result-list'>";
 
+    items.forEach(function(item){
 
-    items.forEach(
-        function(item) {
-
-            html +=
-
-                "<li>" +
-
-                escapeHtml(
-                    item
-                ) +
-
-                "</li>";
-
-        }
-    );
-
+        html +=
+            "<li>" +
+            escapeHtml(item) +
+            "</li>";
+    });
 
     html += "</ul>";
 
-
     return html;
-
 }
 
 
@@ -2433,20 +1452,14 @@ function createList(
    STATUS
 ========================================================= */
 
-function showStatus(
-    message,
-    type
-) {
+function showStatus(message,type){
 
     const status =
         document.getElementById(
             "statusMessage"
         );
 
-
-    status.innerText =
-        message;
-
+    status.innerText = message;
 
     status.className =
         "status-message " +
@@ -2456,10 +1469,7 @@ function showStatus(
                 : "status-info"
         );
 
-
-    status.style.display =
-        "block";
-
+    status.style.display = "block";
 }
 
 
@@ -2467,30 +1477,19 @@ function showStatus(
    ERROR
 ========================================================= */
 
-function showError(
-    message
-) {
+function showError(message){
 
     const error =
         document.getElementById(
             "errorMessage"
         );
 
-
-    error.innerText =
-        message;
-
-
-    error.style.display =
-        "block";
-
+    error.innerText = message;
+    error.style.display = "block";
 
     error.scrollIntoView({
-
-        behavior: "smooth"
-
+        behavior:"smooth"
     });
-
 }
 
 
@@ -2498,28 +1497,30 @@ function showError(
    HTML ESCAPING
 ========================================================= */
 
-function escapeHtml(
-    value
-) {
+function escapeHtml(value){
 
     const div =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     div.textContent =
         value == null
             ? ""
             : String(value);
 
-
     return div.innerHTML;
-
 }
 
+
+function escapeAttribute(value){
+
+    return String(value || "")
+        .replace(/&/g,"&amp;")
+        .replace(/"/g,"&quot;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/'/g,"&#39;");
+}
 </script>
 
 </body>
-
 </html>
