@@ -7,34 +7,29 @@ from datetime import datetime
 import uuid
 import os
 import json
+import threading
 import re
+from urllib.parse import urlparse
 
+from recommendation_db import (
+    get_database_recommendation,
+    get_authoritative_sources,
+)
 
 # ============================================================
 # APP SETUP
 # ============================================================
 
 app = Flask(__name__)
-
 load_dotenv()
 
-
-# ============================================================
-# CONFIGURATION
-# ============================================================
-
-BASE_URL = os.getenv(
-    "BASE_URL",
-    "http://127.0.0.1:5000"
-).strip().rstrip("/")
-
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:5000").strip().rstrip("/")
 
 # ============================================================
 # SMARTPACK AI CONFIGURATION
 # ============================================================
 
 SMARTPACK_AI_MODEL = "gemini-3.6-flash"
-
 
 SMARTPACK_AI_KEYS = [
     os.getenv("GEMINI_API_KEY_1"),
@@ -43,446 +38,158 @@ SMARTPACK_AI_KEYS = [
     os.getenv("GEMINI_API_KEY_4"),
     os.getenv("GEMINI_API_KEY_5"),
 ]
-
-
-SMARTPACK_AI_KEYS = [
-    key.strip()
-    for key in SMARTPACK_AI_KEYS
-    if key and key.strip()
-]
-
-
+SMARTPACK_AI_KEYS = [k.strip() for k in SMARTPACK_AI_KEYS if k and k.strip()]
 current_key_index = 0
-
 
 # ============================================================
 # TEMPORARY PRODUCT DATABASE
 # ============================================================
 
 PRODUCT_DATABASE = {}
-
+RECOMMENDATION_JOBS = {}
+RECOMMENDATION_JOBS_LOCK = threading.Lock()
 
 # ============================================================
-# SMARTPACK AI CLIENT
+# SMARTPACK AI HELPERS
 # ============================================================
 
 def get_smartpack_ai_client():
-
-    global current_key_index
-
     if not SMARTPACK_AI_KEYS:
         return None
-
-    current_key = SMARTPACK_AI_KEYS[
-        current_key_index
-    ]
-
-    return genai.Client(
-        api_key=current_key
-    )
+    return genai.Client(api_key=SMARTPACK_AI_KEYS[current_key_index])
 
 
 def move_to_next_key():
-
     global current_key_index
+    if SMARTPACK_AI_KEYS:
+        current_key_index = (current_key_index + 1) % len(SMARTPACK_AI_KEYS)
 
-    if not SMARTPACK_AI_KEYS:
-        return
-
-    current_key_index = (
-        current_key_index + 1
-    ) % len(SMARTPACK_AI_KEYS)
-
-
-# ============================================================
-# DETECT 429 / QUOTA ERRORS
-# ============================================================
 
 def is_quota_error(error_text):
-
     text = str(error_text).lower()
-
-    quota_words = [
+    return any(word in text for word in [
         "resource_exhausted",
         "quota exceeded",
         "quota_exceeded",
         "generate_requests_per_day",
         "generaterequestsperday",
-        "429"
-    ]
-
-    for word in quota_words:
-
-        if word in text:
-            return True
-
-    return False
+        "429",
+    ])
 
 
 def is_temporary_rate_limit(error_text):
-
     text = str(error_text).lower()
-
-    temporary_words = [
+    return any(word in text for word in [
         "rate_limit_exceeded",
         "too many requests",
         "retryinfo",
         "requests per minute",
-        "requests per second"
-    ]
+        "requests per second",
+    ])
 
-    for word in temporary_words:
-
-        if word in text:
-            return True
-
-    return False
-
-
-# ============================================================
-# CLEAN SMARTPACK AI ERROR
-# ============================================================
 
 def get_user_friendly_ai_error(error_text):
-
     if is_quota_error(error_text):
-
         return (
-            "SmartPack AI is temporarily unavailable "
-            "because the current AI usage limit has "
-            "been reached. Please try again later."
+            "SmartPack AI is temporarily unavailable because the current "
+            "AI usage limit has been reached. Please try again later."
         )
-
     if is_temporary_rate_limit(error_text):
-
-        return (
-            "SmartPack AI is temporarily busy. "
-            "Please wait a moment and try again."
-        )
-
-    return (
-        "SmartPack AI could not process the request "
-        "right now. Please try again."
-    )
+        return "SmartPack AI is temporarily busy. Please wait a moment and try again."
+    return "SmartPack AI could not process the request right now. Please try again."
 
 
-# ============================================================
-# SMARTPACK AI TEXT REQUEST
-# ============================================================
-
-def run_smartpack_ai_request(
-    prompt,
-    system_instruction
-):
-
+def run_smartpack_ai_request(prompt, system_instruction):
     if not SMARTPACK_AI_KEYS:
-
         return {
             "success": False,
             "error_type": "configuration",
-            "error":
-                "SmartPack AI is not configured."
+            "error": "SmartPack AI is not configured.",
         }
 
+    last_error = "Unknown SmartPack AI error."
 
-    attempts = len(
-        SMARTPACK_AI_KEYS
-    )
-
-    last_error = (
-        "Unknown SmartPack AI error."
-    )
-
-    quota_detected = False
-
-
-    for attempt in range(attempts):
-
+    for _ in range(len(SMARTPACK_AI_KEYS)):
         try:
-
-            client = (
-                get_smartpack_ai_client()
+            client = get_smartpack_ai_client()
+            response = client.interactions.create(
+                model=SMARTPACK_AI_MODEL,
+                input=prompt,
+                system_instruction=system_instruction,
             )
+            return {"success": True, "text": response.output_text}
 
+        except Exception as exc:
+            last_error = str(exc)
+            print("\nSmartPack AI request error:\n", last_error, "\n")
 
-            response = (
-                client.interactions.create(
-
-                    model=SMARTPACK_AI_MODEL,
-
-                    input=prompt,
-
-                    system_instruction=
-                        system_instruction
-
-                )
-            )
-
-
-            return {
-
-                "success": True,
-
-                "text":
-                    response.output_text
-
-            }
-
-
-        except Exception as e:
-
-            last_error = str(e)
-
-
-            print()
-            print(
-                "SmartPack AI request error:"
-            )
-
-            print(last_error)
-            print()
-
-
-            # --------------------------------------------
-            # QUOTA ERROR
-            # --------------------------------------------
-
-            if is_quota_error(
-                last_error
-            ):
-
-                quota_detected = True
-
-                print(
-                    "SmartPack AI quota detected."
-                )
-
-                # Do not blindly retry all keys
-                # because project-level quotas
-                # are not bypassed by key rotation.
-
-                break
-
-
-            # --------------------------------------------
-            # TEMPORARY RATE LIMIT
-            # --------------------------------------------
-
-            if is_temporary_rate_limit(
-                last_error
-            ):
-
-                print(
-                    "Temporary SmartPack AI "
-                    "rate limit detected."
-                )
-
-                move_to_next_key()
-
-                continue
-
-
-            # --------------------------------------------
-            # OTHER ERROR
-            # --------------------------------------------
+            if is_quota_error(last_error):
+                return {
+                    "success": False,
+                    "error_type": "quota",
+                    "error": get_user_friendly_ai_error(last_error),
+                }
 
             move_to_next_key()
 
-
-    if quota_detected:
-
-        return {
-
-            "success": False,
-
-            "error_type": "quota",
-
-            "error":
-                get_user_friendly_ai_error(
-                    last_error
-                )
-
-        }
-
-
     return {
-
         "success": False,
-
         "error_type": "api",
-
-        "error":
-            get_user_friendly_ai_error(
-                last_error
-            )
-
+        "error": get_user_friendly_ai_error(last_error),
     }
 
 
-# ============================================================
-# SMARTPACK AI IMAGE REQUEST
-# ============================================================
-
-def run_smartpack_ai_image_request(
-    image_bytes,
-    mime_type,
-    prompt
-):
-
+def run_smartpack_ai_image_request(image_bytes, mime_type, prompt):
     if not SMARTPACK_AI_KEYS:
-
         return {
-
             "success": False,
-
-            "error_type":
-                "configuration",
-
-            "error":
-                "SmartPack AI is not configured."
-
+            "error_type": "configuration",
+            "error": "SmartPack AI is not configured.",
         }
 
+    last_error = "Unknown SmartPack AI error."
 
-    attempts = len(
-        SMARTPACK_AI_KEYS
-    )
-
-    last_error = (
-        "Unknown SmartPack AI error."
-    )
-
-    quota_detected = False
-
-
-    for attempt in range(attempts):
-
+    for _ in range(len(SMARTPACK_AI_KEYS)):
         try:
-
-            client = (
-                get_smartpack_ai_client()
+            client = get_smartpack_ai_client()
+            image_part = types.Part.from_bytes(
+                data=image_bytes,
+                mime_type=mime_type,
             )
 
-
-            image_part = (
-                types.Part.from_bytes(
-
-                    data=image_bytes,
-
-                    mime_type=mime_type
-
-                )
+            response = client.models.generate_content(
+                model=SMARTPACK_AI_MODEL,
+                contents=[image_part, prompt],
             )
 
+            return {"success": True, "text": response.text}
 
-            response = (
-                client.models.generate_content(
+        except Exception as exc:
+            last_error = str(exc)
+            print("\nSmartPack AI image request error:\n", last_error, "\n")
 
-                    model=SMARTPACK_AI_MODEL,
-
-                    contents=[
-                        image_part,
-                        prompt
-                    ]
-
-                )
-            )
-
-
-            return {
-
-                "success": True,
-
-                "text":
-                    response.text
-
-            }
-
-
-        except Exception as e:
-
-            last_error = str(e)
-
-
-            print()
-            print(
-                "SmartPack AI image request error:"
-            )
-
-            print(last_error)
-            print()
-
-
-            # --------------------------------------------
-            # DAILY / PROJECT QUOTA
-            # --------------------------------------------
-
-            if is_quota_error(
-                last_error
-            ):
-
-                quota_detected = True
-
-                print(
-                    "SmartPack AI image quota "
-                    "detected."
-                )
-
-                break
-
-
-            # --------------------------------------------
-            # TEMPORARY RATE LIMIT
-            # --------------------------------------------
-
-            if is_temporary_rate_limit(
-                last_error
-            ):
-
-                print(
-                    "Temporary SmartPack AI "
-                    "image rate limit detected."
-                )
-
-                move_to_next_key()
-
-                continue
-
+            if is_quota_error(last_error):
+                return {
+                    "success": False,
+                    "error_type": "quota",
+                    "error": get_user_friendly_ai_error(last_error),
+                }
 
             move_to_next_key()
 
-
-    if quota_detected:
-
-        return {
-
-            "success": False,
-
-            "error_type":
-                "quota",
-
-            "error":
-                get_user_friendly_ai_error(
-                    last_error
-                )
-
-        }
-
-
     return {
-
         "success": False,
-
-        "error_type":
-            "api",
-
-        "error":
-            get_user_friendly_ai_error(
-                last_error
-            )
-
+        "error_type": "api",
+        "error": get_user_friendly_ai_error(last_error),
     }
 
+
+def clean_json_text(text):
+    text = (text or "").strip()
+    if text.startswith("```"):
+        text = text.replace("```json", "", 1)
+        text = text.replace("```", "")
+    return text.strip()
 
 # ============================================================
 # API ERROR HANDLERS
@@ -490,29 +197,22 @@ def run_smartpack_ai_image_request(
 
 @app.errorhandler(404)
 def handle_not_found(error):
-
     if request.path.startswith("/api/"):
-
         return jsonify({
             "success": False,
-            "error": "API endpoint not found: " + request.path
+            "error": "API endpoint not found: " + request.path,
         }), 404
-
     return error
 
 
 @app.errorhandler(500)
 def handle_server_error(error):
-
     if request.path.startswith("/api/"):
-
         return jsonify({
             "success": False,
-            "error": "SmartPack server error while processing the request."
+            "error": "SmartPack server error while processing the request.",
         }), 500
-
     return error
-
 
 # ============================================================
 # BASIC PAGES
@@ -520,616 +220,105 @@ def handle_server_error(error):
 
 @app.route("/")
 def home():
-
-    return render_template(
-        "index.html"
-    )
+    return render_template("index.html")
 
 
 @app.route("/recommendation")
 def recommendation():
-
-    return render_template(
-        "recommendation.html"
-    )
+    return render_template("recommendation.html")
 
 
 @app.route("/manufacturer")
 def manufacturer():
-
-    return render_template(
-        "manufacturer.html"
-    )
+    return render_template("manufacturer.html")
 
 
 @app.route("/inspector")
 def inspector():
+    return render_template("inspector.html")
 
-    return render_template(
-        "inspector.html"
-    )
-
-
-# ============================================================
-# SMARTPACK AI CHATBOT PAGE
-# ============================================================
 
 @app.route("/chatbot")
 def chatbot():
+    return render_template("chatbot.html")
 
-    return render_template(
-        "chatbot.html"
-    )
 
+@app.route("/logistics")
+def logistics():
+    return render_template("logistics.html")
 
 # ============================================================
 # PRODUCT QR PAGE
 # ============================================================
 
-@app.route(
-    "/product/<product_id>"
-)
+@app.route("/product/<product_id>")
 def product_page(product_id):
-
-    product = PRODUCT_DATABASE.get(
-        product_id
-    )
-
+    product = PRODUCT_DATABASE.get(product_id)
 
     if not product:
-
         return render_template(
-
             "product.html",
-
             product=None,
-
-            error=(
-                "This product information "
-                "is not available on the server."
-            )
-
+            error="This product information is not available on the server.",
         ), 404
 
-
     return render_template(
-
         "product.html",
-
         product=product,
-
-        error=None
-
+        error=None,
     )
 
-
 # ============================================================
-# RULE-BASED PACKAGING ENGINE
-# ============================================================
-
-def old_rule_engine(data):
-
-    product = data.get(
-        "product",
-        ""
-    ).strip()
-
-
-    category = data.get(
-        "category",
-        ""
-    ).strip().lower()
-
-
-    moisture = data.get(
-        "moisture",
-        ""
-    ).strip().lower()
-
-
-    oxygen = data.get(
-        "oxygen",
-        ""
-    ).strip().lower()
-
-
-    light = data.get(
-        "light",
-        ""
-    ).strip().lower()
-
-
-    perishability = data.get(
-        "perishability",
-        ""
-    ).strip().lower()
-
-
-    respiration = data.get(
-        "respiration",
-        ""
-    ).strip().lower()
-
-
-    # --------------------------------------------------------
-    # CATEGORY RECOMMENDATIONS
-    # --------------------------------------------------------
-
-    if category in [
-        "snacks",
-        "namkeen",
-        "chips",
-        "gathiya",
-        "khakhra"
-    ]:
-
-        packaging = (
-            "High-barrier flexible pouch"
-        )
-
-        material = (
-            "PET / Metallized PET / PE"
-        )
-
-        features = [
-
-            "Moisture barrier",
-
-            "Oxygen barrier",
-
-            "Good heat sealability"
-
-        ]
-
-
-    elif category in [
-        "dry fruit",
-        "dry fruits",
-        "nuts"
-    ]:
-
-        packaging = (
-            "High-barrier laminated pouch"
-        )
-
-        material = (
-            "PET / Metallized PET / PE"
-        )
-
-        features = [
-
-            "Oxygen barrier",
-
-            "Moisture barrier",
-
-            "Good sealability"
-
-        ]
-
-
-    elif category in [
-        "fruit",
-        "fresh fruit"
-    ]:
-
-        packaging = (
-            "Breathable produce packaging"
-        )
-
-        material = (
-            "Food-grade perforated film"
-        )
-
-        features = [
-
-            "Controlled ventilation",
-
-            "Moisture management",
-
-            "Mechanical protection"
-
-        ]
-
-
-    elif category in [
-        "vegetable",
-        "fresh vegetable"
-    ]:
-
-        packaging = (
-            "Breathable produce packaging"
-        )
-
-        material = (
-            "Food-grade perforated film"
-        )
-
-        features = [
-
-            "Controlled ventilation",
-
-            "Moisture management",
-
-            "Mechanical protection"
-
-        ]
-
-
-    elif category in [
-        "dairy",
-        "milk"
-    ]:
-
-        packaging = (
-            "Sealed food-grade dairy packaging"
-        )
-
-        material = (
-            "Food-grade polymer / "
-            "multilayer structure"
-        )
-
-        features = [
-
-            "Leak resistance",
-
-            "Contamination protection",
-
-            "Suitable barrier"
-
-        ]
-
-
-    elif category in [
-        "frozen",
-        "frozen food"
-    ]:
-
-        packaging = (
-            "Freezer-grade high-barrier packaging"
-        )
-
-        material = (
-            "Freezer-compatible multilayer polymer"
-        )
-
-        features = [
-
-            "Low-temperature flexibility",
-
-            "Moisture barrier",
-
-            "Seal integrity"
-
-        ]
-
-
-    elif category in [
-        "spice",
-        "spices"
-    ]:
-
-        packaging = (
-            "High-barrier spice pouch"
-        )
-
-        material = (
-            "PET / Metallized PET / PE"
-        )
-
-        features = [
-
-            "Moisture barrier",
-
-            "Light protection",
-
-            "Oxygen barrier"
-
-        ]
-
-
-    elif category in [
-        "biscuit",
-        "bakery"
-    ]:
-
-        packaging = (
-            "Moisture-resistant flexible packaging"
-        )
-
-        material = (
-            "PET / PE or suitable laminate"
-        )
-
-        features = [
-
-            "Moisture barrier",
-
-            "Good sealability",
-
-            "Mechanical protection"
-
-        ]
-
-
-    elif category in [
-        "ready-to-eat",
-        "cooked food"
-    ]:
-
-        packaging = (
-            "Food-grade high-barrier packaging"
-        )
-
-        material = (
-            "Suitable multilayer "
-            "food-contact structure"
-        )
-
-        features = [
-
-            "Contamination protection",
-
-            "Oxygen/moisture control",
-
-            "Strong sealing"
-
-        ]
-
-
-    elif category in [
-        "pickle",
-        "sauce",
-        "chutney"
-    ]:
-
-        packaging = (
-            "Leak-resistant barrier packaging"
-        )
-
-        material = (
-            "Food-grade compatible container "
-            "or multilayer structure"
-        )
-
-        features = [
-
-            "Leak resistance",
-
-            "Chemical compatibility",
-
-            "Strong sealing"
-
-        ]
-
-
-    else:
-
-        packaging = (
-            "Food-grade protective barrier packaging"
-        )
-
-        material = (
-            "Food-grade multilayer material"
-        )
-
-        features = [
-
-            "Food-contact suitability",
-
-            "Moisture protection",
-
-            "Mechanical protection"
-
-        ]
-
-
-    # --------------------------------------------------------
-    # CHARACTERISTICS
-    # --------------------------------------------------------
-
-    if moisture == "high":
-
-        features.append(
-            "High moisture barrier"
-        )
-
-    elif moisture == "medium":
-
-        features.append(
-            "Moderate moisture protection"
-        )
-
-
-    if oxygen == "high":
-
-        features.append(
-            "High oxygen barrier"
-        )
-
-    elif oxygen == "medium":
-
-        features.append(
-            "Moderate oxygen barrier"
-        )
-
-
-    if light == "high":
-
-        features.append(
-            "Light protection"
-        )
-
-
-    if perishability == "high":
-
-        features.append(
-            "Strong contamination protection"
-        )
-
-
-    if respiration == "high":
-
-        features.append(
-            "Controlled gas exchange / ventilation"
-        )
-
-
-    features = list(
-        dict.fromkeys(features)
-    )
-
-
-    return {
-
-        "packaging":
-            packaging,
-
-        "material":
-            material,
-
-        "features":
-            features
-
-    }
-
-
-# ============================================================
-# SMARTPACK AI PACKAGING ANALYSIS
+# RECOMMENDATION AI
 # ============================================================
 
-def smartpack_ai_analysis(
-    data,
-    baseline
-):
-
+def smartpack_ai_analysis(data, baseline):
     prompt_data = {
-
-        "product":
-            data.get("product"),
-
-        "category":
-            data.get("category"),
-
-        "moisture":
-            data.get("moisture"),
-
-        "oxygen":
-            data.get("oxygen"),
-
-        "light":
-            data.get("light"),
-
-        "perishability":
-            data.get("perishability"),
-
-        "respiration":
-            data.get("respiration"),
-
-        "old_material":
-            data.get("old_material"),
-
-        "pack_size":
-            data.get("pack_size"),
-
-        "old_packaging_cost":
-            data.get("old_packaging_cost"),
-
-        "required_shelf_life":
-            data.get("required_shelf_life"),
-
-        "baseline_recommendation":
-            baseline
-
+        "product": data.get("product"),
+        "category": data.get("category"),
+        "moisture": data.get("moisture"),
+        "oxygen": data.get("oxygen"),
+        "light": data.get("light"),
+        "perishability": data.get("perishability"),
+        "respiration": data.get("respiration"),
+        "old_material": data.get("old_material"),
+        "pack_size": data.get("pack_size"),
+        "old_packaging_cost": data.get("old_packaging_cost"),
+        "required_shelf_life": data.get("required_shelf_life"),
+        "baseline_recommendation": baseline,
+        "official_reference_sources": get_authoritative_sources(),
     }
-
 
     system_instruction = """
+You are SmartPack AI, the intelligent analysis engine of an intelligent
+food packaging recommendation system.
 
-You are SmartPack AI, the intelligent analysis
-engine of an intelligent food packaging
-recommendation system.
+Improve and explain the existing rule-based packaging recommendation.
 
-Your job is to improve and explain the existing
-rule-based packaging recommendation.
-
-IMPORTANT RULES:
-
+Rules:
 1. Never blindly replace the existing recommendation.
-
 2. Use the existing recommendation as the baseline.
+3. Improve it only when product characteristics justify the improvement.
+4. Do not invent packaging prices, market prices, laboratory results or
+   guaranteed shelf life.
+5. Required shelf life is a target.
+6. If shelf life cannot be confidently assessed, say "Requires shelf-life validation."
+7. Show cost comparison only when reliable cost information exists.
+8. If cost information is missing, use "Not available".
+9. Clearly identify the old material before comparing it.
+10. If the old material is suitable and there is no meaningful improvement,
+    do not force a new recommendation.
+11. Sustainable packaging is optional and must not automatically be called better.
+12. Mention relevant trade-offs.
+13. Keep final information compact. Prefer short bullets.
+14. Clearly explain WHY the material was selected.
+15. Evidence must be separated from the recommendation.
+16. Do not claim a source was checked unless it is supplied.
+17. Use supplied official sources only as reference context.
+18. Do not claim any regulator approved the specific SmartPack recommendation.
+19. This is prototype guidance, not certified food-safety or packaging approval.
 
-3. Improve it only when product characteristics
-justify the improvement.
-
-4. Do not invent packaging prices.
-
-5. Do not invent market prices.
-
-6. Do not invent laboratory test results.
-
-7. Do not claim that a material guarantees a
-specific shelf life.
-
-8. The user's required shelf life is a TARGET.
-
-9. Shelf life depends on food formulation,
-processing, packaging, storage, temperature,
-humidity and validation testing.
-
-10. If the required shelf life cannot be confidently
-assessed from available information, say:
-
-"Requires shelf-life validation."
-
-11. Only show cost comparison when enough reliable
-cost information exists.
-
-12. If cost information is missing, return:
-
-"Not available"
-
-13. The old packaging material must be clearly
-identified before comparing it with a new material.
-
-14. If the old material already appears technically
-suitable and there is no meaningful improvement,
-do not force a new material recommendation.
-
-15. A bio-based, compostable or sustainable material
-is OPTIONAL.
-
-16. Suggest a sustainable option only if it can
-reasonably satisfy the product's required barrier,
-food-contact and shelf-life requirements.
-
-17. Do not call sustainable packaging automatically
-better.
-
-18. Mention trade-offs such as cost, barrier
-performance, availability or validation when relevant.
-
-19. Keep final information compact.
-
-20. Prefer short tables or bullet points.
-
-21. Never write long paragraphs.
-
-22. Clearly explain WHY the material was selected.
-
-23. Evidence must be clearly separated from
-the recommendation.
-
-24. Do not claim that a source was checked unless
-that source is actually available.
-
-25. The recommendation is prototype guidance and
-not a certified food-safety or packaging approval.
-
-Return ONLY valid JSON.
-
-Use exactly this structure:
-
+Return ONLY valid JSON:
 {
     "final_packaging": "",
     "final_material": "",
@@ -1162,1192 +351,724 @@ Use exactly this structure:
     ],
     "validation_note": ""
 }
-
 Keep arrays short.
-
 """
 
-
-    prompt = json.dumps(
-        prompt_data,
-        indent=2
-    )
-
-
     result = run_smartpack_ai_request(
-
-        prompt,
-
-        system_instruction
-
+        json.dumps(prompt_data, indent=2),
+        system_instruction,
     )
-
 
     if not result["success"]:
-
         return {
-
             "available": False,
-
-            "error_type":
-                result.get(
-                    "error_type",
-                    "api"
-                ),
-
-            "error":
-                result["error"]
-
+            "error_type": result.get("error_type", "api"),
+            "error": result["error"],
         }
-
 
     try:
-
-        text = result[
-            "text"
-        ].strip()
-
-
-        if text.startswith("```"):
-
-            text = text.replace(
-                "```json",
-                ""
-            )
-
-            text = text.replace(
-                "```",
-                ""
-            )
-
-            text = text.strip()
-
-
-        parsed = json.loads(
-            text
-        )
-
+        parsed = json.loads(clean_json_text(result["text"]))
+        parsed["evidence"] = get_authoritative_sources()
 
         return {
-
             "available": True,
-
-            "result":
-                parsed
-
+            "result": parsed,
         }
 
-
-    except json.JSONDecodeError as e:
-
+    except json.JSONDecodeError:
         return {
-
             "available": False,
-
-            "error_type":
-                "invalid_response",
-
-            "error":
-                "SmartPack AI returned an invalid result."
-
+            "error_type": "invalid_response",
+            "error": "SmartPack AI returned an invalid result.",
         }
 
 
-# ============================================================
-# RECOMMENDATION API
-# ============================================================
+def _run_recommendation_ai_job(job_id, data, baseline):
+    try:
+        with RECOMMENDATION_JOBS_LOCK:
+            job = RECOMMENDATION_JOBS.get(job_id)
+            if not job:
+                return
+            job["status"] = "running"
+            job["started_at"] = datetime.now().isoformat(timespec="seconds")
 
-@app.route(
-    "/api/recommend",
-    methods=["POST"]
-)
-@app.route(
-    "/api/recommendation",
-    methods=["POST"]
-)
-@app.route(
-    "/api/recommend/start",
-    methods=["POST"]
-)
-def recommend():
+        ai_result = smartpack_ai_analysis(data, baseline)
 
+        with RECOMMENDATION_JOBS_LOCK:
+            job = RECOMMENDATION_JOBS.get(job_id)
+            if not job:
+                return
+
+            if ai_result.get("available"):
+                job["status"] = "completed"
+                job["recommendation"] = ai_result["result"]
+                job["completed_at"] = datetime.now().isoformat(timespec="seconds")
+            else:
+                job["status"] = "failed"
+                job["error_type"] = ai_result.get("error_type", "api")
+                job["error"] = ai_result.get(
+                    "error",
+                    "SmartPack AI could not complete the analysis.",
+                )
+                job["completed_at"] = datetime.now().isoformat(timespec="seconds")
+
+    except Exception as exc:
+        print("Background SmartPack AI recommendation error:", str(exc))
+        with RECOMMENDATION_JOBS_LOCK:
+            job = RECOMMENDATION_JOBS.get(job_id)
+            if job:
+                job["status"] = "failed"
+                job["error_type"] = "server_error"
+                job["error"] = "SmartPack AI could not complete the analysis."
+                job["completed_at"] = datetime.now().isoformat(timespec="seconds")
+
+
+def _start_recommendation_job(data, baseline):
+    job_id = str(uuid.uuid4())
+
+    with RECOMMENDATION_JOBS_LOCK:
+        RECOMMENDATION_JOBS[job_id] = {
+            "status": "queued",
+            "recommendation": None,
+            "error": None,
+            "error_type": None,
+            "created_at": datetime.now().isoformat(timespec="seconds"),
+        }
+
+    threading.Thread(
+        target=_run_recommendation_ai_job,
+        args=(job_id, data, baseline),
+        daemon=True,
+        name=f"smartpack-ai-{job_id[:8]}",
+    ).start()
+
+    return job_id
+
+
+@app.route("/api/recommend/start", methods=["POST"])
+def recommend_start():
     data = request.get_json(silent=True) or {}
 
-
     if not data:
-
         return jsonify({
-
             "success": False,
-
-            "error":
-                "No product information received."
-
+            "error": "No product information received.",
         }), 400
 
-
-    product = data.get(
-        "product",
-        ""
-    ).strip()
-
+    product = str(data.get("product", "")).strip()
+    category = str(data.get("category", "")).strip()
+    shelf = str(data.get("required_shelf_life", "")).strip()
 
     if not product:
-
-        return jsonify({
-
-            "success": False,
-
-            "error":
-                "Please enter a product name."
-
-        }), 400
-
-
-    # Rule engine always works locally
-
-    baseline = old_rule_engine(
-        data
-    )
-
-
-    # SmartPack AI improvement
-
-    ai_result = smartpack_ai_analysis(
-        data,
-        baseline
-    )
-
-
-    if ai_result["available"]:
-
-        return jsonify({
-
-            "success": True,
-
-            "engine":
-                "Rule Engine + SmartPack AI",
-
-            "product":
-                product,
-
-            "baseline":
-                baseline,
-
-            "recommendation":
-                ai_result["result"]
-
-        })
-
-
-    # --------------------------------------------------------
-    # SAFE FALLBACK
-    # --------------------------------------------------------
-
-    return jsonify({
-
-        "success": True,
-
-        "engine":
-            "Rule Engine",
-
-        "ai_status":
-            ai_result.get(
-                "error_type",
-                "unavailable"
-            ),
-
-        "ai_message":
-            ai_result.get(
-                "error",
-                "SmartPack AI is temporarily unavailable."
-            ),
-
-        "product":
-            product,
-
-        "recommendation": {
-
-            "final_packaging":
-                baseline["packaging"],
-
-            "final_material":
-                baseline["material"],
-
-            "why_selected": [
-
-                "Recommendation generated from "
-                "the entered product characteristics."
-
-            ],
-
-            "benefits":
-                baseline["features"],
-
-            "shelf_life": {
-
-                "user_target":
-                    data.get(
-                        "required_shelf_life",
-                        ""
-                    ),
-
-                "assessment":
-                    "Requires shelf-life validation."
-
-            },
-
-            "cost_comparison": {
-
-                "show":
-                    False,
-
-                "old_material":
-                    data.get(
-                        "old_material",
-                        ""
-                    ),
-
-                "old_cost":
-                    data.get(
-                        "old_packaging_cost",
-                        ""
-                    ),
-
-                "new_material":
-                    baseline["material"],
-
-                "new_cost":
-                    "",
-
-                "difference":
-                    "",
-
-                "reason":
-                    "Reliable cost data is not available."
-
-            },
-
-            "sustainable_option": {
-
-                "show":
-                    False,
-
-                "material":
-                    "",
-
-                "benefit":
-                    "",
-
-                "tradeoff":
-                    ""
-
-            },
-
-            "evidence": [
-
-                {
-
-                    "source":
-                        "FSSAI",
-
-                    "reason_used":
-                        "Food-contact packaging requirements."
-
-                },
-
-                {
-
-                    "source":
-                        "Relevant BIS standard",
-
-                    "reason_used":
-                        "Packaging material requirements."
-
-                },
-
-                {
-
-                    "source":
-                        "Verified technical literature",
-
-                    "reason_used":
-                        "Material and barrier properties."
-
-                }
-
-            ],
-
-            "validation_note":
-                "Final commercial packaging selection "
-                "requires material compatibility and "
-                "shelf-life validation."
-
-        }
-
-    })
-
-
-# ============================================================
-# SMARTPACK AI CHATBOT
-# ============================================================
-
-@app.route(
-    "/api/chat",
-    methods=["POST"]
-)
-def chat():
-
-    data = request.get_json()
-
-
-    if not data:
-
-        return jsonify({
-
-            "success": False,
-
-            "error":
-                "No message received."
-
-        }), 400
-
-
-    message = data.get(
-        "message",
-        ""
-    ).strip()
-
-
-    if not message:
-
-        return jsonify({
-
-            "success": False,
-
-            "error":
-                "Please enter a question."
-
-        }), 400
-
-
-    system_instruction = """
-
-You are SmartPack AI, the conversational assistant
-inside a Smart Food Packaging system.
-
-Your job is to answer users naturally and helpfully
-about food packaging and closely related topics.
-
-IMPORTANT: The FAQ list is only a starting point.
-Users are NOT limited to the FAQ questions. Answer
-any reasonable packaging-related question the user
-asks.
-
-MAIN TOPICS:
-
-1. Food packaging basics
-2. Indian food packaging
-3. Packaging materials
-4. Moisture, oxygen and light protection
-5. Shelf-life concepts
-6. Storage and cold chain
-7. Food logistics
-8. Sustainable packaging
-9. Packaging cost and comparison
-10. Packaging inspection
-11. QR/product information
-12. General SmartPack system questions
-
-COMMUNICATION STYLE:
-
-- Use simple English.
-- Sound like a helpful human, not a textbook.
-- Keep normal answers short and practical.
-- Explain technical words in simple words when needed.
-- Use short bullets when they make the answer clearer.
-- Do not repeat the user's question unnecessarily.
-- If the user asks for more detail, then explain more.
-
-NATURAL QUESTION EXAMPLES:
-
-Users may ask things like:
-- "What should I use for paneer?"
-- "My namkeen gets soft. Why?"
-- "Can I use paper instead of plastic?"
-- "My packet is leaking. What should I check?"
-- "Is this packaging too expensive?"
-- "How can I increase shelf life?"
-- "Do I need cold storage?"
-
-Handle these naturally even when the exact question
-is not listed in the FAQ.
-
-SCOPE:
-
-If a question is clearly unrelated to food packaging
-or the SmartPack system, politely say that you are
-focused on food packaging and related topics, then
-invite the user to ask a relevant question.
-
-SAFETY AND ACCURACY:
-
-- Do not invent scientific facts, prices, regulations
-  or laboratory test results.
-- Do not claim that packaging guarantees a specific
-  shelf life.
-- Do not claim that an image alone proves food safety
-  or freshness.
-- If information is insufficient, say so clearly.
-- Commercial packaging decisions need suitable
-  food-contact compliance, compatibility and
-  shelf-life validation.
-- Do not pretend that a source was checked if it was
-  not actually provided or available.
-
-"""
-
-
-    result = run_smartpack_ai_request(
-
-        message,
-
-        system_instruction
-
-    )
-
-
-    if not result["success"]:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                result["error"],
-
-            "error_type":
-                result.get(
-                    "error_type",
-                    "api"
-                )
-
-        }), 200
-
-
-    return jsonify({
-
-        "success":
-            True,
-
-        "reply":
-            result["text"]
-
-    })
-
-
-# ============================================================
-# MANUFACTURER PORTAL
-# ============================================================
-
-@app.route(
-    "/api/manufacturer/create",
-    methods=["POST"]
-)
-def manufacturer_create():
-
-    data = request.get_json()
-
-
-    if not data:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "No manufacturer information received."
-
-        }), 400
-
-
-    manufacturer_name = data.get(
-        "manufacturer_name",
-        ""
-    ).strip()
-
-
-    brand_name = data.get(
-        "brand_name",
-        ""
-    ).strip()
-
-
-    manufacturer_address = data.get(
-        "manufacturer_address",
-        ""
-    ).strip()
-
-
-    product = data.get(
-        "product",
-        ""
-    ).strip()
-
-
-    category = data.get(
-        "category",
-        ""
-    ).strip()
-
-
-    pack_size = data.get(
-        "pack_size",
-        ""
-    ).strip()
-
-
-    batch_number = data.get(
-        "batch_number",
-        ""
-    ).strip()
-
-
-    manufacturing_date = data.get(
-        "manufacturing_date",
-        ""
-    ).strip()
-
-
-    expiry_date = data.get(
-        "expiry_date",
-        ""
-    ).strip()
-
-
-    required_shelf_life = data.get(
-        "required_shelf_life",
-        ""
-    ).strip()
-
-
-    old_material = data.get(
-        "old_material",
-        ""
-    ).strip()
-
-
-    old_packaging_cost = data.get(
-        "old_packaging_cost",
-        ""
-    ).strip()
-
-
-    moisture = data.get(
-        "moisture",
-        ""
-    ).strip()
-
-
-    oxygen = data.get(
-        "oxygen",
-        ""
-    ).strip()
-
-
-    light = data.get(
-        "light",
-        ""
-    ).strip()
-
-
-    perishability = data.get(
-        "perishability",
-        ""
-    ).strip()
-
-
-    respiration = data.get(
-        "respiration",
-        ""
-    ).strip()
-
-
-    # --------------------------------------------------------
-    # VALIDATION
-    # --------------------------------------------------------
-
-    if not manufacturer_name:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "Please enter manufacturer."
-
-        }), 400
-
-
-    if not brand_name:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "Please enter brand."
-
-        }), 400
-
-
-    if not product:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "Please enter product."
-
-        }), 400
-
+        return jsonify({"success": False, "error": "Please enter a product name."}), 400
 
     if not category:
+        return jsonify({"success": False, "error": "Please select the product category."}), 400
 
-        return jsonify({
+    if not shelf:
+        return jsonify({"success": False, "error": "Please enter the required shelf life."}), 400
 
-            "success":
-                False,
-
-            "error":
-                "Please select a category."
-
-        }), 400
-
-
-    if not pack_size:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "Please enter pack size."
-
-        }), 400
-
-
-    if not batch_number:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "Please enter batch / lot number."
-
-        }), 400
-
-
-    # --------------------------------------------------------
-    # RULE ENGINE DATA
-    # --------------------------------------------------------
-
-    rule_engine_data = {
-
-        "product":
-            product,
-
-        "category":
-            category,
-
-        "moisture":
-            moisture,
-
-        "oxygen":
-            oxygen,
-
-        "light":
-            light,
-
-        "perishability":
-            perishability,
-
-        "respiration":
-            respiration,
-
-        "old_material":
-            old_material,
-
-        "pack_size":
-            pack_size,
-
-        "old_packaging_cost":
-            old_packaging_cost,
-
-        "required_shelf_life":
-            required_shelf_life
-
-    }
-
-
-    baseline = old_rule_engine(
-        rule_engine_data
-    )
-
-
-    # --------------------------------------------------------
-    # PRODUCT ID
-    # --------------------------------------------------------
-
-    product_id = str(
-        uuid.uuid4()
-    )
-
-
-    generated_at = datetime.now().isoformat(
-        timespec="seconds"
-    )
-
-
-    # --------------------------------------------------------
-    # PRODUCT RECORD
-    # --------------------------------------------------------
-
-    product_record = {
-
-        "product_id":
-            product_id,
-
-        "manufacturer_name":
-            manufacturer_name,
-
-        "brand_name":
-            brand_name,
-
-        "manufacturer_address":
-            manufacturer_address,
-
-        "product":
-            product,
-
-        "category":
-            category,
-
-        "pack_size":
-            pack_size,
-
-        "batch_number":
-            batch_number,
-
-        "manufacturing_date":
-            manufacturing_date,
-
-        "expiry_date":
-            expiry_date,
-
-        "required_shelf_life":
-            required_shelf_life,
-
-        "old_material":
-            old_material,
-
-        "old_packaging_cost":
-            old_packaging_cost,
-
-        "recommended_packaging":
-            baseline["packaging"],
-
-        "recommended_material":
-            baseline["material"],
-
-        "packaging_features":
-            baseline["features"],
-
-        "shelf_life_assessment":
-            "Requires shelf-life validation.",
-
-        "generated_at":
-            generated_at
-
-    }
-
-
-    PRODUCT_DATABASE[
-        product_id
-    ] = product_record
-
-
-    # --------------------------------------------------------
-    # QR URL
-    # --------------------------------------------------------
-
-    qr_url = (
-        BASE_URL
-        + "/product/"
-        + product_id
-    )
-
-
-    print()
-    print(
-        "Generated QR URL:"
-    )
-    print(qr_url)
-    print()
-
-
-    # --------------------------------------------------------
-    # QR GENERATION
-    # --------------------------------------------------------
-
-    try:
-
-        import qrcode
-
-
-        qr_directory = os.path.join(
-
-            app.static_folder,
-
-            "qr_codes"
-
-        )
-
-
-        os.makedirs(
-
-            qr_directory,
-
-            exist_ok=True
-
-        )
-
-
-        qr = qrcode.QRCode(
-
-            version=1,
-
-            error_correction=
-                qrcode.constants.ERROR_CORRECT_M,
-
-            box_size=10,
-
-            border=4
-
-        )
-
-
-        qr.add_data(
-            qr_url
-        )
-
-
-        qr.make(
-            fit=True
-        )
-
-
-        qr_image = qr.make_image(
-
-            fill_color="black",
-
-            back_color="white"
-
-        )
-
-
-        qr_filename = (
-
-            "smartpack_"
-
-            + product_id
-
-            + ".png"
-
-        )
-
-
-        qr_path = os.path.join(
-
-            qr_directory,
-
-            qr_filename
-
-        )
-
-
-        qr_image.save(
-            qr_path
-        )
-
-
-    except Exception as e:
-
-        print(
-            "QR generation error:"
-        )
-
-        print(
-            str(e)
-        )
-
-
-        PRODUCT_DATABASE.pop(
-
-            product_id,
-
-            None
-
-        )
-
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "Could not generate QR code."
-
-        }), 500
-
-
-    qr_image_url = (
-
-        "/static/qr_codes/"
-
-        + qr_filename
-
-    )
-
-
-    # --------------------------------------------------------
-    # FRONTEND PRODUCT DATA
-    # --------------------------------------------------------
-
-    product_data = {
-
-        "brand_name":
-            brand_name,
-
-        "product":
-            product,
-
-        "category":
-            category,
-
-        "pack_size":
-            pack_size,
-
-        "batch_number":
-            batch_number,
-
-        "manufacturing_date":
-            manufacturing_date,
-
-        "expiry_date":
-            expiry_date
-
-    }
-
+    baseline = get_database_recommendation(data)
+    job_id = _start_recommendation_job(data, baseline)
 
     return jsonify({
-
-        "success":
-            True,
-
-        "product_id":
-            product_id,
-
-        "generated_at":
-            generated_at,
-
-        "product_data":
-            product_data,
-
-        "recommendation": {
-
-            "final_packaging":
-                baseline["packaging"],
-
-            "final_material":
-                baseline["material"],
-
-            "why_selected": [
-
-                "The recommendation is based on "
-                "the product category and entered "
-                "packaging characteristics."
-
-            ],
-
-            "benefits":
-                baseline["features"],
-
-            "shelf_life": {
-
-                "user_target":
-                    required_shelf_life,
-
-                "assessment":
-                    "Requires shelf-life validation."
-
-            }
-
-        },
-
-        "qr_code":
-            qr_image_url,
-
-        "qr_url":
-            qr_url
-
+        "success": True,
+        "job_id": job_id,
+        "status": "queued",
+        "engine": "SmartPack Database",
+        "product": product,
+        "baseline": baseline,
     })
 
 
+@app.route("/api/recommend", methods=["POST"])
+@app.route("/api/recommendation", methods=["POST"])
+def recommend_legacy():
+    return recommend_start()
+
+
+@app.route("/api/recommend/status/<job_id>", methods=["GET"])
+def recommendation_status(job_id):
+    with RECOMMENDATION_JOBS_LOCK:
+        job = RECOMMENDATION_JOBS.get(job_id)
+
+        if not job:
+            return jsonify({
+                "success": False,
+                "status": "not_found",
+                "error": "Recommendation job was not found.",
+            }), 404
+
+        response = {
+            "success": True,
+            "status": job.get("status", "queued"),
+        }
+
+        if job.get("status") == "completed":
+            response["recommendation"] = job.get("recommendation")
+
+        elif job.get("status") == "failed":
+            response["error"] = job.get(
+                "error",
+                "SmartPack AI could not complete the analysis.",
+            )
+            response["error_type"] = job.get("error_type", "api")
+
+        return jsonify(response)
+
 # ============================================================
-# SMART PACK INSPECTOR
+# CHATBOT
 # ============================================================
 
-@app.route(
-    "/api/inspector/analyze",
-    methods=["POST"]
-)
-def inspector_analyze():
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.get_json(silent=True) or {}
 
-    # --------------------------------------------------------
-    # CHECK IMAGE
-    # --------------------------------------------------------
-
-    if "image" not in request.files:
-
+    if not data:
         return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "Please upload a packaging image."
-
+            "success": False,
+            "error": "No message received.",
         }), 400
 
+    message = str(data.get("message", "")).strip()
 
-    image_file = request.files[
-        "image"
+    if not message:
+        return jsonify({
+            "success": False,
+            "error": "Please enter a question.",
+        }), 400
+
+    system_instruction = """
+You are SmartPack AI, the conversational assistant inside a smart food
+packaging system.
+
+Answer reasonable questions about:
+- food packaging
+- packaging materials
+- Indian food packaging
+- moisture, oxygen and light protection
+- shelf-life concepts
+- storage and cold chain
+- food logistics
+- sustainable packaging
+- packaging cost and comparison
+- packaging inspection
+- QR/product information
+- SmartPack system
+
+Use simple English, short practical answers and bullets where useful.
+
+Do not invent scientific facts, prices, regulations or laboratory results.
+Do not guarantee shelf life or food safety.
+If information is insufficient, say so.
+If unrelated to food packaging, politely explain the scope.
+"""
+
+    result = run_smartpack_ai_request(
+        message,
+        system_instruction,
+    )
+
+    if not result["success"]:
+        return jsonify({
+            "success": False,
+            "error": result["error"],
+            "error_type": result.get("error_type", "api"),
+        }), 200
+
+    return jsonify({
+        "success": True,
+        "reply": result["text"],
+    })
+
+# ============================================================
+# MANUFACTURER PORTAL + QR GENERATION
+# ============================================================
+
+@app.route("/api/manufacturer/create", methods=["POST"])
+def manufacturer_create():
+    data = request.get_json(silent=True) or {}
+
+    if not data:
+        return jsonify({
+            "success": False,
+            "error": "No manufacturer information received.",
+        }), 400
+
+    fields = [
+        "manufacturer_name",
+        "brand_name",
+        "manufacturer_address",
+        "product",
+        "category",
+        "pack_size",
+        "batch_number",
+        "manufacturing_date",
+        "expiry_date",
+        "required_shelf_life",
+        "old_material",
+        "old_packaging_cost",
+        "moisture",
+        "oxygen",
+        "light",
+        "perishability",
+        "respiration",
     ]
 
+    values = {
+        field: str(data.get(field, "")).strip()
+        for field in fields
+    }
 
-    if (
-        not image_file
-        or image_file.filename == ""
-    ):
+    for required in [
+        "manufacturer_name",
+        "brand_name",
+        "product",
+        "category",
+        "pack_size",
+        "batch_number",
+    ]:
+        if not values[required]:
+            labels = {
+                "manufacturer_name": "manufacturer",
+                "brand_name": "brand",
+                "product": "product",
+                "category": "category",
+                "pack_size": "pack size",
+                "batch_number": "batch / lot number",
+            }
+            return jsonify({
+                "success": False,
+                "error": f"Please enter {labels[required]}.",
+            }), 400
+
+    baseline = get_database_recommendation({
+        "product": values["product"],
+        "category": values["category"],
+        "moisture": values["moisture"],
+        "oxygen": values["oxygen"],
+        "light": values["light"],
+        "perishability": values["perishability"],
+        "respiration": values["respiration"],
+        "old_material": values["old_material"],
+        "pack_size": values["pack_size"],
+        "old_packaging_cost": values["old_packaging_cost"],
+        "required_shelf_life": values["required_shelf_life"],
+    })
+
+    product_id = str(uuid.uuid4())
+    generated_at = datetime.now().isoformat(timespec="seconds")
+
+    product_record = {
+        "product_id": product_id,
+        "manufacturer_name": values["manufacturer_name"],
+        "brand_name": values["brand_name"],
+        "manufacturer_address": values["manufacturer_address"],
+        "product": values["product"],
+        "category": values["category"],
+        "pack_size": values["pack_size"],
+        "batch_number": values["batch_number"],
+        "manufacturing_date": values["manufacturing_date"],
+        "expiry_date": values["expiry_date"],
+        "required_shelf_life": values["required_shelf_life"],
+        "old_material": values["old_material"],
+        "old_packaging_cost": values["old_packaging_cost"],
+        "recommended_packaging": baseline["final_packaging"],
+        "recommended_material": baseline["final_material"],
+        "packaging_features": baseline["benefits"],
+        "shelf_life_assessment": "Requires shelf-life validation.",
+        "generated_at": generated_at,
+    }
+
+    PRODUCT_DATABASE[product_id] = product_record
+
+    qr_url = f"{BASE_URL}/product/{product_id}"
+
+    try:
+        import qrcode
+
+        qr_directory = os.path.join(
+            app.static_folder,
+            "qr_codes",
+        )
+        os.makedirs(qr_directory, exist_ok=True)
+
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_url)
+        qr.make(fit=True)
+
+        qr_image = qr.make_image(
+            fill_color="black",
+            back_color="white",
+        )
+
+        qr_filename = f"smartpack_{product_id}.png"
+        qr_path = os.path.join(
+            qr_directory,
+            qr_filename,
+        )
+        qr_image.save(qr_path)
+
+    except Exception as exc:
+        print("QR generation error:", str(exc))
+        PRODUCT_DATABASE.pop(product_id, None)
 
         return jsonify({
+            "success": False,
+            "error": "Could not generate QR code.",
+        }), 500
 
-            "success":
-                False,
+    qr_image_url = f"/static/qr_codes/{qr_filename}"
 
-            "error":
-                "Please select an image."
+    product_data = {
+        "brand_name": values["brand_name"],
+        "product": values["product"],
+        "category": values["category"],
+        "pack_size": values["pack_size"],
+        "batch_number": values["batch_number"],
+        "manufacturing_date": values["manufacturing_date"],
+        "expiry_date": values["expiry_date"],
+    }
 
-        }), 400
+    return jsonify({
+        "success": True,
+        "product_id": product_id,
+        "generated_at": generated_at,
+        "product_data": product_data,
+        "recommendation": {
+            "final_packaging": baseline["final_packaging"],
+            "final_material": baseline["final_material"],
+            "why_selected": [
+                "The recommendation is based on the product category and entered packaging characteristics."
+            ],
+            "benefits": baseline["benefits"],
+            "shelf_life": {
+                "user_target": values["required_shelf_life"],
+                "assessment": "Requires shelf-life validation.",
+            },
+        },
+        "qr_code": qr_image_url,
+        "qr_url": qr_url,
+    })
 
+# ============================================================
+# QR DECODER FOR INSPECTOR
+# ============================================================
 
-    # --------------------------------------------------------
-    # IMAGE TYPES
-    # --------------------------------------------------------
+def decode_qr_from_image(image_bytes):
+    """
+    Attempts to decode a QR from a captured/uploaded image.
 
-    allowed_types = {
+    OpenCV is the primary decoder. pyzbar/Pillow is a fallback.
+    """
 
-        "image/jpeg",
+    try:
+        import cv2
+        import numpy as np
 
-        "image/png",
+        image_array = np.frombuffer(
+            image_bytes,
+            dtype=np.uint8,
+        )
 
-        "image/webp"
+        image = cv2.imdecode(
+            image_array,
+            cv2.IMREAD_COLOR,
+        )
 
+        if image is not None:
+            detector = cv2.QRCodeDetector()
+
+            decoded_text, points, _ = detector.detectAndDecode(image)
+
+            if decoded_text:
+                return {
+                    "success": True,
+                    "data": decoded_text.strip(),
+                    "method": "OpenCV QR detector",
+                }
+
+            gray = cv2.cvtColor(
+                image,
+                cv2.COLOR_BGR2GRAY,
+            )
+
+            for variant in [
+                gray,
+                cv2.equalizeHist(gray),
+            ]:
+                decoded_text, points, _ = detector.detectAndDecode(variant)
+
+                if decoded_text:
+                    return {
+                        "success": True,
+                        "data": decoded_text.strip(),
+                        "method": "OpenCV QR detector",
+                    }
+
+    except Exception as exc:
+        print("OpenCV QR decoder unavailable:", str(exc))
+
+    try:
+        from pyzbar.pyzbar import decode
+        from PIL import Image
+        import io
+
+        image = Image.open(io.BytesIO(image_bytes))
+        results = decode(image)
+
+        for result in results:
+            try:
+                decoded_data = result.data.decode(
+                    "utf-8",
+                    errors="replace",
+                ).strip()
+            except Exception:
+                decoded_data = str(result.data).strip()
+
+            if decoded_data:
+                return {
+                    "success": True,
+                    "data": decoded_data,
+                    "method": "pyzbar",
+                }
+
+    except Exception as exc:
+        print("pyzbar QR decoder unavailable:", str(exc))
+
+    return {
+        "success": False,
+        "data": "",
+        "error": "No readable QR code was found in the image.",
     }
 
 
-    if image_file.mimetype not in allowed_types:
+def extract_smartpack_product_id(qr_data):
+    if not qr_data:
+        return None
 
-        return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "Please upload JPG, PNG or WEBP image."
-
-        }), 400
-
+    value = qr_data.strip()
 
     try:
+        parsed = urlparse(value)
 
-        # ----------------------------------------------------
-        # READ IMAGE
-        # ----------------------------------------------------
+        match = re.search(
+            r"/product/([A-Za-z0-9-]+)",
+            parsed.path or "",
+        )
 
-        image_bytes = image_file.read()
+        if match:
+            return match.group(1)
+
+    except Exception:
+        pass
+
+    match = re.search(
+        r"/product/([A-Za-z0-9-]+)",
+        value,
+    )
+
+    if match:
+        return match.group(1)
+
+    return None
 
 
-        # ----------------------------------------------------
-        # SIZE LIMIT
-        # ----------------------------------------------------
+def build_qr_result(qr_data, decode_method):
+    product_id = extract_smartpack_product_id(qr_data)
 
-        if len(image_bytes) > (
-            20 * 1024 * 1024
-        ):
+    result = {
+        "decoded": True,
+        "data": qr_data,
+        "decode_method": decode_method,
+        "source_type": "External QR",
+        "product_found": False,
+        "product": None,
+        "message": "QR code decoded successfully.",
+    }
 
+    if product_id:
+        result["source_type"] = "SmartPack Product QR"
+        result["product_id"] = product_id
+
+        product = PRODUCT_DATABASE.get(product_id)
+
+        if product:
+            result["product_found"] = True
+
+            result["product"] = {
+                "product_id": product.get("product_id"),
+                "manufacturer_name": product.get("manufacturer_name"),
+                "brand_name": product.get("brand_name"),
+                "manufacturer_address": product.get("manufacturer_address"),
+                "product": product.get("product"),
+                "category": product.get("category"),
+                "pack_size": product.get("pack_size"),
+                "batch_number": product.get("batch_number"),
+                "manufacturing_date": product.get("manufacturing_date"),
+                "expiry_date": product.get("expiry_date"),
+                "required_shelf_life": product.get("required_shelf_life"),
+                "recommended_packaging": product.get("recommended_packaging"),
+                "recommended_material": product.get("recommended_material"),
+                "packaging_features": product.get("packaging_features"),
+                "shelf_life_assessment": product.get("shelf_life_assessment"),
+                "generated_at": product.get("generated_at"),
+            }
+
+            result["message"] = "SmartPack product record found."
+
+        else:
+            result["message"] = (
+                "This QR looks like a SmartPack product QR, but its "
+                "product record is not available on this server."
+            )
+
+    return result
+
+
+@app.route("/api/inspector/qr", methods=["POST"])
+def inspector_qr():
+    if "qr_image" not in request.files:
+        return jsonify({
+            "success": False,
+            "error": "Please upload or capture a QR image.",
+        }), 400
+
+    qr_file = request.files["qr_image"]
+
+    if not qr_file or qr_file.filename == "":
+        return jsonify({
+            "success": False,
+            "error": "Please select a QR image.",
+        }), 400
+
+    allowed_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+    }
+
+    if qr_file.mimetype not in allowed_types:
+        return jsonify({
+            "success": False,
+            "error": "Please use JPG, PNG or WEBP.",
+        }), 400
+
+    try:
+        image_bytes = qr_file.read()
+
+        if len(image_bytes) > 20 * 1024 * 1024:
             return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    "Image must be smaller than 20 MB."
-
+                "success": False,
+                "error": "Image must be smaller than 20 MB.",
             }), 400
 
+        decoded = decode_qr_from_image(image_bytes)
 
-        # ----------------------------------------------------
-        # SMARTPACK AI INSPECTION PROMPT
-        # ----------------------------------------------------
+        if not decoded.get("success"):
+            return jsonify({
+                "success": False,
+                "error": decoded.get(
+                    "error",
+                    "No readable QR code was found.",
+                ),
+            }), 200
+
+        qr_result = build_qr_result(
+            decoded["data"],
+            decoded.get("method", "QR detector"),
+        )
+
+        return jsonify({
+            "success": True,
+            "qr": qr_result,
+        })
+
+    except Exception as exc:
+        print("Inspector QR error:", str(exc))
+
+        return jsonify({
+            "success": False,
+            "error": "SmartPack could not read this QR image.",
+            "error_type": "server_error",
+        }), 200
+
+# ============================================================
+# SMART PACK INSPECTOR - EXISTING IMAGE ANALYSIS
+# ============================================================
+
+@app.route("/api/inspector/analyze", methods=["POST"])
+def inspector_analyze():
+    if "image" not in request.files:
+        return jsonify({
+            "success": False,
+            "error": "Please upload a packaging image.",
+        }), 400
+
+    image_file = request.files["image"]
+
+    if not image_file or image_file.filename == "":
+        return jsonify({
+            "success": False,
+            "error": "Please select an image.",
+        }), 400
+
+    allowed_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+    }
+
+    if image_file.mimetype not in allowed_types:
+        return jsonify({
+            "success": False,
+            "error": "Please upload JPG, PNG or WEBP image.",
+        }), 400
+
+    try:
+        image_bytes = image_file.read()
+
+        if len(image_bytes) > 20 * 1024 * 1024:
+            return jsonify({
+                "success": False,
+                "error": "Image must be smaller than 20 MB.",
+            }), 400
+
+        # Optional QR detection from the same packaging image.
+        # This DOES NOT replace image analysis.
+        qr_result = None
+
+        try:
+            qr_decoded = decode_qr_from_image(image_bytes)
+
+            if qr_decoded.get("success"):
+                qr_result = build_qr_result(
+                    qr_decoded["data"],
+                    qr_decoded.get("method", "QR detector"),
+                )
+
+        except Exception as exc:
+            print("Optional QR detection error:", str(exc))
 
         prompt = """
-
-You are SmartPack AI, an intelligent food
-packaging inspection assistant.
+You are SmartPack AI, an intelligent food packaging inspection assistant.
 
 Analyze the uploaded packaging/product image.
 
 IMPORTANT:
-
-- Only report things that can reasonably be
-  observed from the image.
-
+- Only report things that can reasonably be observed from the image.
 - Do not invent laboratory test results.
-
-- Do not claim that the package is food-safe
-  based only on an image.
-
+- Do not claim that the package is food-safe based only on an image.
 - Do not guarantee shelf life.
-
-- If something cannot be determined visually,
-  say:
-
-"Cannot be determined from image."
+- If something cannot be determined visually, say:
+  "Cannot be determined from image."
 
 Inspect:
-
 1. Packaging type
 2. Visible packaging condition
 3. Visible damage
@@ -2360,7 +1081,6 @@ Inspect:
 Return ONLY valid JSON.
 
 Use exactly this structure:
-
 {
     "overall_status": "",
     "packaging_type": "",
@@ -2374,158 +1094,56 @@ Use exactly this structure:
 }
 
 For overall_status use ONLY:
-
 "GOOD"
-
 "NEEDS ATTENTION"
-
 "UNABLE TO DETERMINE"
 
 Keep the answer short and practical.
-
 """
 
-
-        # ----------------------------------------------------
-        # IMAGE REQUEST
-        # ----------------------------------------------------
-
-        result = (
-            run_smartpack_ai_image_request(
-
-                image_bytes,
-
-                image_file.mimetype,
-
-                prompt
-
-            )
+        result = run_smartpack_ai_image_request(
+            image_bytes,
+            image_file.mimetype,
+            prompt,
         )
-
-
-        # ----------------------------------------------------
-        # AI UNAVAILABLE
-        # ----------------------------------------------------
 
         if not result["success"]:
-
             return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    result["error"],
-
-                "error_type":
-                    result.get(
-                        "error_type",
-                        "api"
-                    )
-
+                "success": False,
+                "error": result["error"],
+                "error_type": result.get("error_type", "api"),
             }), 200
 
-
-        # ----------------------------------------------------
-        # CLEAN RESPONSE
-        # ----------------------------------------------------
-
-        text = result[
-            "text"
-        ].strip()
-
-
-        if text.startswith("```"):
-
-            text = text.replace(
-                "```json",
-                ""
-            )
-
-            text = text.replace(
-                "```",
-                ""
-            )
-
-            text = text.strip()
-
-
-        # ----------------------------------------------------
-        # PARSE JSON
-        # ----------------------------------------------------
-
-        parsed = json.loads(
-            text
-        )
-
-
-        # ----------------------------------------------------
-        # RETURN INSPECTION
-        # ----------------------------------------------------
+        parsed = json.loads(clean_json_text(result["text"]))
 
         return jsonify({
-
-            "success":
-                True,
-
-            "engine":
-                "SmartPack AI",
-
-            "inspection":
-                parsed
-
+            "success": True,
+            "engine": "SmartPack AI",
+            "inspection": parsed,
+            "qr": qr_result,
         })
 
-
     except json.JSONDecodeError:
-
         return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "SmartPack AI returned an invalid inspection result.",
-
-            "error_type":
-                "invalid_response"
-
+            "success": False,
+            "error": "SmartPack AI returned an invalid inspection result.",
+            "error_type": "invalid_response",
         }), 200
 
-
-    except Exception as e:
-
-        print()
-        print(
-            "Smart Pack Inspector error:"
-        )
-        print(
-            str(e)
-        )
-        print()
-
+    except Exception as exc:
+        print("\nSmart Pack Inspector error:\n", str(exc), "\n")
 
         return jsonify({
-
-            "success":
-                False,
-
-            "error":
-                "SmartPack AI could not inspect this image right now.",
-
-            "error_type":
-                "server_error"
-
+            "success": False,
+            "error": "SmartPack AI could not inspect this image right now.",
+            "error_type": "server_error",
         }), 200
-
-
 
 # ============================================================
 # SMART LOGISTICS
 # ============================================================
 
 def smart_logistics_analysis(data):
-
     prompt_data = {
         "product_name": data.get("product_name", ""),
         "category": data.get("category", ""),
@@ -2541,23 +1159,24 @@ def smart_logistics_analysis(data):
         "temperature_requirement": data.get("temperature_requirement", ""),
         "humidity_sensitivity": data.get("humidity_sensitivity", ""),
         "light_sensitivity": data.get("light_sensitivity", ""),
-        "respiration": data.get("respiration", "")
+        "respiration": data.get("respiration", ""),
     }
 
     system_instruction = """
 You are SmartPack AI, the logistics analysis engine of a smart food packaging system.
 
-Analyze the supplied product and transport information. The food/product name is important and must be used when making the logistics guidance more relevant.
+Analyze the supplied product and transport information. The food/product name
+is important and must be used when making logistics guidance more relevant.
 
 Rules:
-- Give practical logistics guidance based only on the supplied information.
-- Do not invent exact temperature, humidity or shelf-life values when they are not supported by the input.
+- Give practical logistics guidance based only on supplied information.
+- Do not invent exact temperature, humidity or shelf-life values.
 - Do not guarantee food safety or shelf life.
-- If information is insufficient, say that validation or product-specific data is required.
+- If information is insufficient, say validation or product-specific data is required.
 - Keep the answer compact.
 - Return ONLY valid JSON.
 
-Use exactly this structure:
+Use exactly:
 {
   "recommended_temperature": "",
   "humidity_requirement": "",
@@ -2575,55 +1194,39 @@ For risk_level use only LOW, MEDIUM, HIGH, or UNABLE TO DETERMINE.
 
     result = run_smartpack_ai_request(
         json.dumps(prompt_data, indent=2),
-        system_instruction
+        system_instruction,
     )
 
     if not result["success"]:
         return {
             "available": False,
             "error_type": result.get("error_type", "api"),
-            "error": result["error"]
+            "error": result["error"],
         }
 
     try:
-        text = result["text"].strip()
-
-        if text.startswith("```"):
-            text = text.replace("```json", "", 1)
-            text = text.replace("```", "")
-            text = text.strip()
-
-        parsed = json.loads(text)
-
+        parsed = json.loads(clean_json_text(result["text"]))
         return {
             "available": True,
-            "result": parsed
+            "result": parsed,
         }
-
     except json.JSONDecodeError:
         return {
             "available": False,
             "error_type": "invalid_response",
-            "error": "SmartPack AI returned an invalid logistics result."
+            "error": "SmartPack AI returned an invalid logistics result.",
         }
-
-
-@app.route("/logistics")
-def logistics():
-    return render_template("logistics.html")
 
 
 @app.route("/api/logistics/analyze", methods=["POST"])
 def logistics_analyze():
-
     data = request.get_json(silent=True) or {}
-
     product_name = str(data.get("product_name", "")).strip()
 
     if not product_name:
         return jsonify({
             "success": False,
-            "error": "Please enter the food or product name."
+            "error": "Please enter the food or product name.",
         }), 400
 
     ai_result = smart_logistics_analysis(data)
@@ -2631,97 +1234,45 @@ def logistics_analyze():
     if not ai_result["available"]:
         return jsonify({
             "success": False,
-            "error": ai_result.get("error", "SmartPack AI is temporarily unavailable."),
-            "error_type": ai_result.get("error_type", "api")
+            "error": ai_result.get(
+                "error",
+                "SmartPack AI is temporarily unavailable.",
+            ),
+            "error_type": ai_result.get("error_type", "api"),
         }), 200
 
     return jsonify({
         "success": True,
         "engine": "SmartPack AI",
         "product_name": product_name,
-        "logistics": ai_result["result"]
+        "logistics": ai_result["result"],
     })
-
-
 
 # ============================================================
 # SERVER START
 # ============================================================
 
 if __name__ == "__main__":
-
+    print()
+    print("==========================================")
+    print(" Smart Food Packaging System")
+    print("==========================================")
+    print(f"SmartPack AI model: {SMARTPACK_AI_MODEL}")
+    print(f"SmartPack AI keys loaded: {len(SMARTPACK_AI_KEYS)}")
+    print(f"BASE URL: {BASE_URL}")
+    print("Rule Engine: ENABLED")
+    print("SmartPack AI: ENABLED")
+    print("Manufacturer Portal: ENABLED")
+    print("QR Generation: ENABLED")
+    print("QR Image Upload: ENABLED")
+    print("QR Camera Support: ENABLED")
+    print("SmartPack QR Product Lookup: ENABLED")
+    print("Universal QR Decode API: ENABLED")
+    print("Product Web Page: ENABLED")
+    print("Smart Pack Inspector: ENABLED")
+    print("Inspector Image Analysis: ENABLED")
+    print("429 Handling: ENABLED")
+    print("==========================================")
     print()
 
-    print(
-        "=========================================="
-    )
-
-    print(
-        " Smart Food Packaging System"
-    )
-
-    print(
-        "=========================================="
-    )
-
-    print(
-        f"SmartPack AI model: "
-        f"{SMARTPACK_AI_MODEL}"
-    )
-
-    print(
-        f"SmartPack AI keys loaded: "
-        f"{len(SMARTPACK_AI_KEYS)}"
-    )
-
-    print(
-        f"BASE URL: "
-        f"{BASE_URL}"
-    )
-
-    print(
-        "Rule Engine: ENABLED"
-    )
-
-    print(
-        "SmartPack AI: ENABLED"
-    )
-
-    print(
-        "Manufacturer Portal: ENABLED"
-    )
-
-    print(
-        "QR Generation: ENABLED"
-    )
-
-    print(
-        "Universal QR URL: ENABLED"
-    )
-
-    print(
-        "Product Web Page: ENABLED"
-    )
-
-    print(
-        "Smart Pack Inspector: ENABLED"
-    )
-
-    print(
-        "429 Handling: ENABLED"
-    )
-
-    print(
-        "Server starting..."
-    )
-
-    print(
-        "=========================================="
-    )
-
-    print()
-
-
-    app.run(
-        debug=True
-    )
+    app.run(debug=True)
